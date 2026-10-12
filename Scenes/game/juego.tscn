@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://ljj1bh0k2mxh"]
+
+[ext_resource type="Texture2D" uid="uid://c4qmfiqdnsisx" path="res://Assets/final/fondo.png" id="1_hm6jn"]
+[ext_resource type="PackedScene" uid="uid://bgk6s1dswtnwr" path="res://Scenes/entidades/toro.tscn" id="2_wbnfm"]
+[ext_resource type="PackedScene" uid="uid://gq2jbugprda5" path="res://Scenes/ui/hub.tscn" id="4_gr0cm"]
+
+[node name="Juego" type="Node2D" unique_id=1504673152]
+
+[node name="fondo" type="Sprite2D" parent="." unique_id=2079894343]
+z_index = -10
+position = Vector2(640, 360)
+scale = Vector2(0.765, 0.765)
+texture = ExtResource("1_hm6jn")
+
+[node name="escenario" type="Node2D" parent="." unique_id=892842718]
+
+[node name="Toro" parent="escenario" unique_id=1615739686 instance=ExtResource("2_wbnfm")]
+
+[node name="HUB" parent="." unique_id=2035256680 instance=ExtResource("4_gr0cm")]

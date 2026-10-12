@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://bgk6s1dswtnwr"]
+
+[node name="Toro" type="Node2D" unique_id=1615739686]
+
+[node name="movimiento" type="Node2D" parent="." unique_id=1853379324]
+
+[node name="visual" type="Node2D" parent="movimiento" unique_id=1832840856]
+
+[node name="cola" type="Sprite2D" parent="movimiento/visual" unique_id=1218267393]
+
+[node name="cuerpo" type="Node2D" parent="movimiento/visual" unique_id=1991882900]
+
+[node name="Polygon2D" type="Polygon2D" parent="movimiento/visual/cuerpo" unique_id=496497736]
+color = Color(0.38322225, 0.20431241, 0.13832676, 1)
+polygon = PackedVector2Array(-256, -160, 256, -160, 256, 160, -256, 160)
+uv = PackedVector2Array(595.5, -57)
+
+[node name="cuerpotoro" type="Label" parent="movimiento/visual/cuerpo/Polygon2D" unique_id=2094149887]
+offset_right = 40.0
+offset_bottom = 23.0
+rotation = -0.013404023
+text = "Cuerpo toro"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="cabeza" type="Sprite2D" parent="movimiento/visual" unique_id=2044777526]
+
+[node name="Puntomontura" type="Marker2D" parent="movimiento" unique_id=1071438064]
