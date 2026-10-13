@@ -1,12 +1,34 @@
 [gd_scene format=3 uid="uid://bgk6s1dswtnwr"]
 
+[ext_resource type="Script" uid="uid://bhpfdruclnujf" path="res://Scripts/toro.gd" id="1_lbnfl"]
+[ext_resource type="PackedScene" uid="uid://bnb4pmxstwuaf" path="res://Scenes/entidades/jinete.tscn" id="1_r7id2"]
+[ext_resource type="Script" uid="uid://bosycal0tsw2n" path="res://Resources/configuracion_toro.gd" id="2_rapf2"]
+
+[sub_resource type="Resource" id="Resource_lbnfl"]
+script = ExtResource("2_rapf2")
+metadata/_custom_type_script = "uid://bosycal0tsw2n"
+
 [node name="Toro" type="Node2D" unique_id=1615739686]
+script = ExtResource("1_lbnfl")
+configuracion = SubResource("Resource_lbnfl")
 
 [node name="movimiento" type="Node2D" parent="." unique_id=1853379324]
 
 [node name="visual" type="Node2D" parent="movimiento" unique_id=1832840856]
 
-[node name="cola" type="Sprite2D" parent="movimiento/visual" unique_id=1218267393]
+[node name="cola" type="Node2D" parent="movimiento/visual" unique_id=1879337795]
+
+[node name="Polygon2D" type="Polygon2D" parent="movimiento/visual/cola" unique_id=1187251903]
+position = Vector2(-290, -30)
+color = Color(0.38039216, 0.20392157, 0.13725491, 1)
+polygon = PackedVector2Array(-50, -12.5, 50, -12.5, 50, 12.5, -50, 12.5)
+
+[node name="Cola" type="Label" parent="movimiento/visual/cola/Polygon2D" unique_id=1236428375]
+offset_left = -24.0
+offset_top = -12.0
+offset_right = 16.0
+offset_bottom = 11.0
+text = "Cola"
 
 [node name="cuerpo" type="Node2D" parent="movimiento/visual" unique_id=1991882900]
 
@@ -16,13 +38,31 @@ polygon = PackedVector2Array(-256, -160, 256, -160, 256, 160, -256, 160)
 uv = PackedVector2Array(595.5, -57)
 
 [node name="cuerpotoro" type="Label" parent="movimiento/visual/cuerpo/Polygon2D" unique_id=2094149887]
-offset_right = 40.0
-offset_bottom = 23.0
+offset_left = -44.0
+offset_top = -21.0
+offset_right = 50.0
+offset_bottom = 2.0
 rotation = -0.013404023
 text = "Cuerpo toro"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="cabeza" type="Sprite2D" parent="movimiento/visual" unique_id=2044777526]
+[node name="cabeza" type="Node2D" parent="movimiento/visual" unique_id=1257474545]
+
+[node name="Polygon2D" type="Polygon2D" parent="movimiento/visual/cabeza" unique_id=1021289629]
+position = Vector2(280, -65)
+color = Color(0.38039216, 0.20392157, 0.13725491, 1)
+polygon = PackedVector2Array(-80, -80, -80, 80, 80, 80, 80, -80)
+uv = PackedVector2Array(-80, -80, -80, 80, 80, 80, 80, -80)
+
+[node name="Cabeza" type="Label" parent="movimiento/visual/cabeza" unique_id=572971407]
+offset_left = 277.0
+offset_top = -81.0
+offset_right = 360.0
+offset_bottom = -47.0
+text = "cabeza"
 
 [node name="Puntomontura" type="Marker2D" parent="movimiento" unique_id=1071438064]
+position = Vector2(0, -230)
+
+[node name="Jinete" parent="movimiento/Puntomontura" unique_id=2087859310 instance=ExtResource("1_r7id2")]

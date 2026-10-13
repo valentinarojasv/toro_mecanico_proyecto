@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="ConfiguracionToro" format=3 uid="uid://ccnd2l5b3lmm2"]
+
+[ext_resource type="Script" uid="uid://bosycal0tsw2n" path="res://Resources/configuracion_toro.gd" id="1_4mgme"]
+
+[resource]
+script = ExtResource("1_4mgme")
+metadata/_custom_type_script = "uid://bhpfdruclnujf"

@@ -1,0 +1,202 @@
+[gd_scene format=3 uid="uid://bnb4pmxstwuaf"]
+
+[ext_resource type="Script" uid="uid://bntcw18rsubtn" path="res://Scripts/jinete.gd" id="1_gftm2"]
+
+[sub_resource type="Animation" id="Animation_e0xfi"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("visual:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_gftm2"]
+resource_name = "Reposo"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("visual:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_cbws7"]
+_data = {
+&"RESET": SubResource("Animation_e0xfi"),
+&"Reposo": SubResource("Animation_gftm2")
+}
+
+[sub_resource type="Animation" id="Animation_cbws7"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_spyx0"]
+resource_name = "inclinacion_izq"
+length = 0.3
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, -0.34906584]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_3ns80"]
+_data = {
+&"RESET": SubResource("Animation_cbws7"),
+&"inclinacion_izq": SubResource("Animation_spyx0")
+}
+
+[sub_resource type="Animation" id="Animation_nnqwg"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("visual:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_3ns80"]
+resource_name = "inclinacion_derecha"
+length = 0.3
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("visual:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.3),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 0.34906584]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_nnqwg"]
+_data = {
+&"RESET": SubResource("Animation_nnqwg"),
+&"inclinacion_derecha": SubResource("Animation_3ns80")
+}
+
+[sub_resource type="Animation" id="Animation_t7myo"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("visual:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("visual:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+
+[sub_resource type="Animation" id="Animation_twukt"]
+resource_name = "caida"
+length = 0.6
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("visual:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(220, 150)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("visual:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [0.0, 1.5707964]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_xqtni"]
+_data = {
+&"RESET": SubResource("Animation_t7myo"),
+&"caida": SubResource("Animation_twukt")
+}
+
+[node name="Jinete" type="Node2D" unique_id=2087859310]
+script = ExtResource("1_gftm2")
+
+[node name="visual" type="Node2D" parent="." unique_id=1918334876]
+
+[node name="cuerpo" type="Polygon2D" parent="visual" unique_id=1340514775]
+color = Color(0.15686275, 0.47058824, 0.8156863, 1)
+polygon = PackedVector2Array(-45, -100, 45, -100, 45, 100, -45, 100)
+
+[node name="txtjinete" type="Label" parent="visual" unique_id=1840386313]
+offset_left = -23.0
+offset_right = 22.0
+offset_bottom = 23.0
+text = "Jinete"
+
+[node name="reposo" type="AnimationPlayer" parent="." unique_id=978263514]
+libraries/ = SubResource("AnimationLibrary_cbws7")
+
+[node name="inclinacion izq" type="AnimationPlayer" parent="." unique_id=927264951]
+root_node = NodePath("../visual")
+libraries/ = SubResource("AnimationLibrary_3ns80")
+
+[node name="inclinacion der" type="AnimationPlayer" parent="." unique_id=1512158548]
+libraries/ = SubResource("AnimationLibrary_nnqwg")
+
+[node name="Caida" type="AnimationPlayer" parent="." unique_id=2023747580]
+libraries/ = SubResource("AnimationLibrary_xqtni")
