@@ -1,0 +1,40 @@
+[gd_scene format=3 uid="uid://c4ik6i2hj0uiu"]
+
+[ext_resource type="FontFile" uid="uid://da23ojgbm7fq6" path="res://Assets/final/WesternCowboy.ttf" id="1_4h0k5"]
+[ext_resource type="Script" uid="uid://ba7ig10ipwuab" path="res://Scripts/QTEprompt.gd" id="1_cq1uj"]
+[ext_resource type="Texture2D" uid="uid://dsqtklkwqo7ha" path="res://Assets/final/circulo.png" id="2_cq1uj"]
+
+[node name="QTEPrompt" type="Control" unique_id=2131061750]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1280.0
+offset_bottom = -720.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_cq1uj")
+
+[node name="TextoQTE" type="Label" parent="." unique_id=872682784]
+layout_mode = 0
+offset_left = 484.0
+offset_top = 586.0
+offset_right = 698.0
+offset_bottom = 625.0
+theme_override_fonts/font = ExtResource("1_4h0k5")
+theme_override_font_sizes/font_size = 25
+text = "Presiona  "
+horizontal_alignment = 1
+
+[node name="AnilloTiempo" type="TextureProgressBar" parent="." unique_id=1186575703]
+layout_mode = 0
+offset_left = 976.0001
+offset_top = 291.00003
+offset_right = 2750.0002
+offset_bottom = 1178.0
+scale = Vector2(0.1, 0.1)
+value = 100.0
+fill_mode = 4
+texture_under = ExtResource("2_cq1uj")
+texture_progress = ExtResource("2_cq1uj")
+tint_under = Color(0.37036446, 0.3703645, 0.37036446, 1)

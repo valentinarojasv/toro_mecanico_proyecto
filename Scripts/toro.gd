@@ -18,6 +18,7 @@ func _process(delta: float) -> void:
 	tiempo += delta
 	balancear_toro()
 
+
 # Inclina el toro de forma alternada.
 func balancear_toro() -> void:
 	var inclinacion: float = sin(

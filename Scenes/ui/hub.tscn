@@ -1,3 +1,25 @@
 [gd_scene format=3 uid="uid://gq2jbugprda5"]
 
+[ext_resource type="FontFile" uid="uid://da23ojgbm7fq6" path="res://Assets/final/WesternCowboy.ttf" id="1_w4rgr"]
+
 [node name="HUB" type="CanvasLayer" unique_id=2035256680]
+
+[node name="barraequilibrio" type="ProgressBar" parent="." unique_id=1778128954]
+offset_left = 30.0
+offset_top = 30.0
+offset_right = 330.0
+offset_bottom = 60.0
+step = 1.0
+value = 100.0
+
+[node name="IndicadorQTE" type="Label" parent="." unique_id=1287918953]
+visible = false
+offset_left = 500.0
+offset_top = 500.0
+offset_right = 622.0
+offset_bottom = 526.0
+theme_override_fonts/font = ExtResource("1_w4rgr")
+theme_override_font_sizes/font_size = 20
+text = "Presiona  "
+horizontal_alignment = 1
+vertical_alignment = 1

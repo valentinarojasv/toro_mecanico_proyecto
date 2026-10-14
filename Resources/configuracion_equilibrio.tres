@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="ConfiguracionEquilibrio" format=3 uid="uid://58d5jlntdrrt"]
+
+[ext_resource type="Script" uid="uid://dyhkwa3akjq21" path="res://Resources/configuracion_equilibrio.gd" id="1_8pcf5"]
+
+[resource]
+script = ExtResource("1_8pcf5")
+metadata/_custom_type_script = "uid://dyhkwa3akjq21"

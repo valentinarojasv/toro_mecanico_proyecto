@@ -1,4 +1,5 @@
 extends Node2D
+
 signal caida_terminada
 
 @onready var anim_reposo: AnimationPlayer = $reposo
@@ -6,7 +7,8 @@ signal caida_terminada
 @onready var anim_derecha: AnimationPlayer = $"inclinacion der"
 @onready var anim_caida: AnimationPlayer = $Caida
 
-# Detiene las animaciones para evitar problemas
+
+# Detiene las animaciones para evitar problemas.
 func detener_animaciones() -> void:
 	anim_reposo.stop()
 	anim_izquierda.stop()
@@ -18,6 +20,7 @@ func detener_animaciones() -> void:
 func reposo() -> void:
 	detener_animaciones()
 	anim_reposo.play("Reposo")
+
 
 # Inclina al jinete hacia la izquierda.
 func inclinar_izquierda() -> void:
@@ -46,3 +49,7 @@ func _on_caida_terminada(nombre: StringName) -> void:
 # Conecta la señal de caída.
 func _ready() -> void:
 	anim_caida.animation_finished.connect(_on_caida_terminada)
+
+
+func _on_juego_equilibrio_agotado() -> void:
+	pass # Replace with function body.
