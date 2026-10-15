@@ -1,0 +1,80 @@
+[gd_scene format=3 uid="uid://c5mtlreudmajw"]
+
+[ext_resource type="FontFile" uid="uid://da23ojgbm7fq6" path="res://Assets/final/WesternCowboy.ttf" id="1_fxh24"]
+[ext_resource type="Script" uid="uid://jo7ed40uaiok" path="res://Scripts/fin_juego.gd" id="1_lon1h"]
+[ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="3_bshie"]
+[ext_resource type="Texture2D" uid="uid://4227ra1y8og0" path="res://Assets/final/fondogameover.png" id="3_pwpxn"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1k5o2"]
+bg_color = Color(0.7372549, 0.16862746, 0.20784314, 0.6039216)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ng2od"]
+bg_color = Color(0.58431375, 0.11764706, 0.15294118, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.7382007, 0.16707358, 0.20735416, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="FinJuego" type="Control" unique_id=523782611]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_lon1h")
+
+[node name="FondoDerrota" type="TextureRect" parent="." unique_id=1439351271]
+layout_mode = 0
+anchor_right = 1.3070313
+anchor_bottom = 1.3055556
+offset_right = -393.0
+offset_bottom = -220.0
+texture = ExtResource("3_pwpxn")
+expand_mode = 1
+stretch_mode = 6
+metadata/_edit_use_anchors_ = true
+
+[node name="Panel" type="Panel" parent="." unique_id=1671201482]
+layout_mode = 0
+offset_left = 345.0
+offset_top = 141.0
+offset_right = 911.0
+offset_bottom = 561.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1k5o2")
+
+[node name="TextoDerrota" type="Label" parent="." unique_id=208585618]
+layout_mode = 0
+offset_left = 559.0
+offset_top = 81.0
+offset_right = 696.0
+offset_bottom = 115.0
+theme_override_fonts/font = ExtResource("3_bshie")
+theme_override_font_sizes/font_size = 20
+text = "¡TE HAS CAÍDO!"
+
+[node name="BotonReintentar" type="Button" parent="." unique_id=1234061767]
+layout_mode = 0
+offset_left = 520.0
+offset_top = 585.0
+offset_right = 733.0
+offset_bottom = 657.0
+theme_override_fonts/font = ExtResource("1_fxh24")
+theme_override_font_sizes/font_size = 35
+theme_override_styles/normal = SubResource("StyleBoxFlat_ng2od")
+text = "Reintentar"
+
+[node name="Gameover" type="Label" parent="." unique_id=1060465433]
+layout_mode = 0
+offset_left = 485.0
+offset_top = 29.0
+offset_right = 763.0
+offset_bottom = 81.0
+theme_override_fonts/font = ExtResource("1_fxh24")
+theme_override_font_sizes/font_size = 40
+text = "GAME OVER"

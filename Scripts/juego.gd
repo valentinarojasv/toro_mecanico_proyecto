@@ -3,35 +3,28 @@ extends Node2D
 # Configuración editable del equilibrio.
 @export var configuracion: ConfiguracionEquilibrio
 
-# Señales del equilibrio.
 signal equilibrio_cambiado(valor: float)
 signal equilibrio_agotado
 
-# Referencias a los sistemas del juego.
 @onready var hud: CanvasLayer = $HUB
 @onready var movimiento_toro: Node2D = $escenario/Toro/movimiento
 @onready var gestor_qte: Node = $GestorQTE
 @onready var qte_prompt: Control = $HUB/QTEPrompt
 @onready var temporizador_qte: Timer = $GestorQTE/TemporizadorQTE
 
-# Estado de la partida.
 var equilibrio_actual: float = 100.0
 var partida_activa: bool = true
-
-# Tiempo entre desafíos.
 var tiempo_entre_qte: float = 0.0
 
 @export var intervalo_qte: float = 5.0
 
 
-# Prepara el juego y conecta las señales.
 func _ready() -> void:
 	if configuracion == null:
 		push_error("Falta asignar la configuración del equilibrio.")
 		return
 
 	randomize()
-
 	equilibrio_actual = configuracion.equilibrio_inicial
 
 	gestor_qte.qte_iniciado.connect(_on_qte_iniciado)
@@ -41,14 +34,11 @@ func _ready() -> void:
 	equilibrio_cambiado.emit(equilibrio_actual)
 
 
-# Actualiza el equilibrio y los QTE.
 func _process(delta: float) -> void:
 	if configuracion == null or not partida_activa:
 		return
 
-	modificar_equilibrio(
-		-configuracion.perdida_por_segundo * delta
-	)
+	modificar_equilibrio(-configuracion.perdida_por_segundo * delta)
 
 	if not partida_activa:
 		return
@@ -65,7 +55,6 @@ func _process(delta: float) -> void:
 			iniciar_qte()
 
 
-# Selecciona un QTE aleatorio.
 func iniciar_qte() -> void:
 	tiempo_entre_qte = 0.0
 
@@ -74,12 +63,9 @@ func iniciar_qte() -> void:
 	if tipo_qte == 0:
 		gestor_qte.iniciar_simple()
 	else:
-		gestor_qte.iniciar_direccion(
-			movimiento_toro.rotation
-		)
+		gestor_qte.iniciar_direccion(movimiento_toro.rotation)
 
 
-# Envía las teclas al gestor.
 func _unhandled_input(event: InputEvent) -> void:
 	if not partida_activa or not gestor_qte.qte_activo:
 		return
@@ -88,7 +74,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		"qte_izq",
 		"qte_derecha",
 		"qte_arriba",
-		"qte_abajo"
+        "qte_abajo"
 	]
 
 	for accion in acciones:
@@ -97,34 +83,24 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 
-# Muestra el QTE y reinicia el anillo.
 func _on_qte_iniciado(
-	_accion: String,
-	tecla: String,
-	es_direccion: bool
+	_accion: String, tecla: String, es_direccion: bool
 ) -> void:
 	qte_prompt.mostrar_qte(tecla, es_direccion)
 
 
-# Recupera equilibrio al acertar.
+# Muestra CORRECTO y recupera equilibrio.
 func _on_qte_acertado() -> void:
-	qte_prompt.ocultar_qte()
-
-	modificar_equilibrio(
-		configuracion.recuperacion_qte
-	)
+	qte_prompt.mostrar_resultado(true)
+	modificar_equilibrio(configuracion.recuperacion_qte)
 
 
-# Penaliza al jugador al fallar.
+# Muestra FALLASTE y penaliza el equilibrio.
 func _on_qte_fallado() -> void:
-	qte_prompt.ocultar_qte()
-
-	modificar_equilibrio(
-		-configuracion.penalizacion_fallo
-	)
+	qte_prompt.mostrar_resultado(false)
+	modificar_equilibrio(-configuracion.penalizacion_fallo)
 
 
-# Actualiza el equilibrio.
 func modificar_equilibrio(cantidad: float) -> void:
 	equilibrio_actual = clampf(
 		equilibrio_actual + cantidad,
@@ -138,9 +114,13 @@ func modificar_equilibrio(cantidad: float) -> void:
 		terminar_partida()
 
 
-# Termina la partida.
+# Termina la partida y abre la pantalla de derrota.
 func terminar_partida() -> void:
 	partida_activa = false
 	gestor_qte.detener()
 	qte_prompt.ocultar_qte()
 	equilibrio_agotado.emit()
+
+	get_tree().change_scene_to_file(
+        "res://Scenes/ui/fin_juego.tscn"
+	)

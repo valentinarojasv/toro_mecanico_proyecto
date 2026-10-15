@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://cenlivqswieoi"]
+
+[ext_resource type="Script" uid="uid://cmferrhmjbeim" path="res://Scripts/menu_principal.gd" id="1_gjr1r"]
+[ext_resource type="FontFile" uid="uid://da23ojgbm7fq6" path="res://Assets/final/WesternCowboy.ttf" id="1_q6tkn"]
+[ext_resource type="Texture2D" uid="uid://b68woopma31fm" path="res://Assets/final/fondomenuprincipal.png" id="2_x3ug5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sg33y"]
+bg_color = Color(0.05490196, 0.18039216, 0.5058824, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(7.1714817e-06, 0.22475985, 0.6408933, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="Menuprincipal" type="Control" unique_id=1596090158]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gjr1r")
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=685679715]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+texture = ExtResource("2_x3ug5")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BotonJugar" type="Button" parent="." unique_id=266094606]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -79.0
+offset_top = -124.0
+offset_right = 83.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("1_q6tkn")
+theme_override_font_sizes/font_size = 30
+theme_override_styles/normal = SubResource("StyleBoxFlat_sg33y")
+text = "JUGAR"
+
+[node name="titulojuego" type="Label" parent="." unique_id=2086765364]
+layout_mode = 0
+offset_left = 435.0
+offset_top = 39.0
+offset_right = 906.0
+offset_bottom = 126.0
+theme_override_fonts/font = ExtResource("1_q6tkn")
+theme_override_font_sizes/font_size = 66
+text = "Toro Mecánico"
+horizontal_alignment = 1
+vertical_alignment = 1

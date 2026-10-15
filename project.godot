@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Toro Mecanico"
-run/main_scene="uid://ljj1bh0k2mxh"
+run/main_scene="uid://cenlivqswieoi"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
