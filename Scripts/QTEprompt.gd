@@ -4,6 +4,7 @@ extends Control
 @onready var anillo_tiempo: TextureProgressBar = $AnilloTiempo
 
 var numero_resultado: int = 0
+var mostrando_progreso: bool = false
 
 
 func _ready() -> void:
@@ -13,23 +14,37 @@ func _ready() -> void:
 	anillo_tiempo.value = 100.0
 
 
-# Muestra la tecla que debe presionar el jugador.
+# Muestra las instrucciones del QTE.
 func mostrar_qte(tecla: String, es_direccion: bool) -> void:
 	numero_resultado += 1
+	mostrando_progreso = false
 
 	if es_direccion:
 		texto_qte.text = "COMPENSA CON " + tecla
+	elif tecla.begins_with("SECUENCIA:"):
+		texto_qte.text = tecla
+	elif tecla == "ESPACIO":
+		texto_qte.text = "MANTÉN ESPACIO"
+	elif tecla == "REPETIR ESPACIO":
+		texto_qte.text = "PULSA ESPACIO
+		 REPETIDAMENTE"
+		mostrando_progreso = true
 	else:
 		texto_qte.text = "PRESIONA " + tecla
 
 	anillo_tiempo.show()
-	anillo_tiempo.value = 100.0
+
+	if mostrando_progreso:
+		anillo_tiempo.value = 0.0
+	else:
+		anillo_tiempo.value = 100.0
+
 	show()
 
 
-# Actualiza el tiempo disponible.
+# Actualiza el tiempo restante.
 func actualizar_tiempo(restante: float, duracion: float) -> void:
-	if duracion <= 0.0:
+	if duracion <= 0.0 or mostrando_progreso:
 		return
 
 	anillo_tiempo.value = clampf(
@@ -39,10 +54,24 @@ func actualizar_tiempo(restante: float, duracion: float) -> void:
 	)
 
 
-# Muestra el resultado en el mismo texto.
+# Actualiza el progreso de las pulsaciones.
+func actualizar_progreso(pulsaciones: int, necesarias: int) -> void:
+	if not mostrando_progreso or necesarias <= 0:
+		return
+
+	anillo_tiempo.value = clampf(
+		(float(pulsaciones) / float(necesarias)) * 100.0,
+		0.0,
+		100.0
+	)
+
+
+# Muestra CORRECTO o FALLASTE.
 func mostrar_resultado(correcto: bool) -> void:
 	numero_resultado += 1
 	var resultado_actual: int = numero_resultado
+
+	mostrando_progreso = false
 
 	if correcto:
 		texto_qte.text = "¡CORRECTO!"
@@ -61,4 +90,5 @@ func mostrar_resultado(correcto: bool) -> void:
 # Oculta el indicador.
 func ocultar_qte() -> void:
 	numero_resultado += 1
+	mostrando_progreso = false
 	hide()

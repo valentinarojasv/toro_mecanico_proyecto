@@ -1,6 +1,8 @@
 extends CanvasLayer
 
 @onready var barra_equilibrio: ProgressBar = $barraequilibrio
+@onready var nivel_furia: Label = $NivelFuria
+
 @export var color_equilibrio_alto: Color = Color.GREEN
 @export var color_equilibrio_medio: Color = Color.YELLOW
 @export var color_equilibrio_bajo: Color = Color.RED
@@ -10,13 +12,14 @@ extends CanvasLayer
 @export_range(0.0, 100.0) var limite_medio: float = 30.0
 
 
-# Prepara la barra al iniciar.
+# Prepara el HUD al iniciar.
 func _ready() -> void:
 	barra_equilibrio.min_value = 0.0
 	barra_equilibrio.max_value = 100.0
 	barra_equilibrio.value = 100.0
 
 	actualizar_color(100.0)
+	actualizar_nivel_furia(1)
 
 
 # Actualiza el equilibrio y su color.
@@ -40,6 +43,6 @@ func actualizar_color(valor: float) -> void:
 		estilo.bg_color = color_equilibrio_bajo
 
 
-# Recibe la señal enviada por Juego.
-func _on_juego_equilibrio_cambiado(valor: float) -> void:
-	actualizar_equilibrio(valor)
+# Actualiza el texto del nivel de furia.
+func actualizar_nivel_furia(nivel: int) -> void:
+	nivel_furia.text = "FURIA: NIVEL " + str(nivel)

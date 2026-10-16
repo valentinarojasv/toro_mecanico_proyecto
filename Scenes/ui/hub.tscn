@@ -14,5 +14,5 @@ offset_bottom = 60.0
 theme_override_colors/font_color = Color(0.0056611365, 0.005661154, 0.005661178, 1)
 theme_override_fonts/font = ExtResource("1_w4rgr")
 theme_override_styles/fill = SubResource("StyleBoxFlat_0xnns")
-step = 1.0
+step = 0.1
 value = 100.0

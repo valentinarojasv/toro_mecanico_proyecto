@@ -5,18 +5,23 @@
 [ext_resource type="Script" uid="uid://dyhkwa3akjq21" path="res://Resources/configuracion_equilibrio.gd" id="2_g775n"]
 [ext_resource type="PackedScene" uid="uid://bgk6s1dswtnwr" path="res://Scenes/entidades/toro.tscn" id="2_wbnfm"]
 [ext_resource type="PackedScene" uid="uid://gq2jbugprda5" path="res://Scenes/ui/hub.tscn" id="3_wbnfm"]
-[ext_resource type="Resource" uid="uid://ccnd2l5b3lmm2" path="res://Resources/configuracion_toro.tres" id="5_g775n"]
+[ext_resource type="Script" uid="uid://bosycal0tsw2n" path="res://Resources/configuracion_toro.gd" id="5_xfidg"]
 [ext_resource type="Script" uid="uid://cfq4sakqk4nqw" path="res://Scripts/hub.gd" id="6_ho3tb"]
 [ext_resource type="PackedScene" uid="uid://c4ik6i2hj0uiu" path="res://Scenes/ui/qte_prompt.tscn" id="7_5cms2"]
 [ext_resource type="Script" uid="uid://dcwavokeniot4" path="res://Scripts/GestorQTE.gd" id="8_5cms2"]
+[ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="9_xfidg"]
 
-[sub_resource type="Resource" id="Resource_rbg1w"]
+[sub_resource type="Resource" id="Resource_djoim"]
 script = ExtResource("2_g775n")
 metadata/_custom_type_script = "uid://dyhkwa3akjq21"
 
+[sub_resource type="Resource" id="Resource_ixi3t"]
+script = ExtResource("5_xfidg")
+metadata/_custom_type_script = "uid://bosycal0tsw2n"
+
 [node name="Juego" type="Node2D" unique_id=1504673152]
 script = ExtResource("1_p2ibf")
-configuracion = SubResource("Resource_rbg1w")
+configuracion = SubResource("Resource_djoim")
 
 [node name="fondo" type="Sprite2D" parent="." unique_id=2079894343]
 z_index = -10
@@ -43,7 +48,7 @@ text = "Base"
 [node name="Toro" parent="escenario" unique_id=1615739686 instance=ExtResource("2_wbnfm")]
 position = Vector2(640, 360)
 scale = Vector2(0.8, 0.8)
-configuracion = ExtResource("5_g775n")
+configuracion = SubResource("Resource_ixi3t")
 
 [node name="HUB" parent="." unique_id=2035256680 instance=ExtResource("3_wbnfm")]
 script = ExtResource("6_ho3tb")
@@ -54,13 +59,23 @@ offset_top = 37.0
 offset_right = 354.0
 offset_bottom = 67.0
 
+[node name="NivelFuria" type="Label" parent="HUB" unique_id=1925498009]
+offset_left = 230.0
+offset_top = 70.0
+offset_right = 344.0
+offset_bottom = 95.0
+scale = Vector2(1.0374948, 1)
+theme_override_fonts/font = ExtResource("9_xfidg")
+theme_override_font_sizes/font_size = 20
+text = "Furia: Nivel 1"
+
 [node name="QTEPrompt" parent="HUB" unique_id=2131061750 instance=ExtResource("7_5cms2")]
 
 [node name="TextoQTE" parent="HUB/QTEPrompt" index="0" unique_id=872682784]
-offset_left = 531.0
-offset_top = 554.0
-offset_right = 745.0
-offset_bottom = 593.0
+offset_left = 532.0
+offset_top = 547.0
+offset_right = 746.0
+offset_bottom = 586.0
 
 [node name="AnilloTiempo" parent="HUB/QTEPrompt" index="1" unique_id=1186575703]
 offset_left = 927.99994
