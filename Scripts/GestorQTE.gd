@@ -3,6 +3,7 @@ extends Node
 # Señales de los QTE.
 signal qte_iniciado(accion: String, tecla: String, es_direccion: bool)
 signal qte_acertado
+signal qte_perfecto
 signal qte_fallado
 signal progreso_machacar(pulsaciones: int, necesarias: int)
 
@@ -21,12 +22,24 @@ var accion_correcta: String = ""
 # Tiempo de respuesta según el nivel de furia.
 var tiempo_respuesta: float = 1.6
 
+# Configuración de dificultad durante el Turbo.
+var turbo_activo: bool = false
+
+const REDUCCION_TIEMPO_TURBO: float = 0.30
+
+# Porcentajes para conseguir QTE perfectos.
+const PERFECTO_NORMAL: float = 0.60
+const PERFECTO_MANTENER: float = 0.30
+const PERFECTO_MACHACAR: float = 0.70
+const PERFECTO_SECUENCIA: float = 0.60
+
 # Configuración del QTE de mantener.
 @export var duracion_mantener: float = 1.0
 
 var qte_mantener: bool = false
 var manteniendo_tecla: bool = false
 var tiempo_mantenido: float = 0.0
+var mantener_inicio_perfecto: bool = false
 
 # Configuración del QTE de pulsaciones repetidas.
 @export_range(1, 20, 1) var pulsaciones_necesarias: int = 5
@@ -59,7 +72,7 @@ func _process(delta: float) -> void:
 			acertar_qte()
 
 
-# Configura el tiempo de respuesta del nivel actual.
+# Configura el tiempo según el nivel de furia.
 func configurar_tiempo_respuesta(nivel_furia: int) -> void:
 	match nivel_furia:
 		1:
@@ -74,6 +87,19 @@ func configurar_tiempo_respuesta(nivel_furia: int) -> void:
 			tiempo_respuesta = 0.6
 
 
+# Activa o desactiva la dificultad adicional del Turbo.
+func configurar_turbo(activar: bool) -> void:
+	turbo_activo = activar
+
+
+# Calcula el tiempo disponible para responder.
+func obtener_tiempo_respuesta() -> float:
+	if turbo_activo:
+		return tiempo_respuesta * (1.0 - REDUCCION_TIEMPO_TURBO)
+
+	return tiempo_respuesta
+
+
 # Inicia un QTE simple.
 func iniciar_simple() -> void:
 	preparar_qte_normal()
@@ -83,7 +109,7 @@ func iniciar_simple() -> void:
 	accion_correcta = acciones_qte[indice]
 	qte_activo = true
 
-	temporizador.start(tiempo_respuesta)
+	temporizador.start(obtener_tiempo_respuesta())
 	qte_iniciado.emit(accion_correcta, teclas_qte[indice], false)
 
 
@@ -102,7 +128,7 @@ func iniciar_direccion(inclinacion: float) -> void:
 
 	qte_activo = true
 
-	temporizador.start(tiempo_respuesta)
+	temporizador.start(obtener_tiempo_respuesta())
 	qte_iniciado.emit(accion_correcta, tecla, true)
 
 
@@ -114,9 +140,9 @@ func iniciar_mantener() -> void:
 	accion_correcta = "accion"
 	qte_activo = true
 
-	# Conserva el tiempo necesario para mantener la tecla.
+	# Respeta el tiempo mínimo para mantener la tecla.
 	var tiempo_mantener_qte: float = maxf(
-		tiempo_respuesta,
+		obtener_tiempo_respuesta(),
 		duracion_mantener + 0.5
 	)
 
@@ -133,7 +159,7 @@ func iniciar_machacar() -> void:
 	accion_correcta = "accion"
 	qte_activo = true
 
-	temporizador.start(tiempo_respuesta)
+	temporizador.start(obtener_tiempo_respuesta())
 	qte_iniciado.emit(accion_correcta, "REPETIR ESPACIO", false)
 
 
@@ -152,8 +178,16 @@ func iniciar_secuencia() -> void:
 
 	qte_activo = true
 
-	# Conserva el tiempo específico de las secuencias.
-	temporizador.start(duracion_secuencia)
+	# Reduce el tiempo de secuencia sin hacerlo demasiado corto.
+	var tiempo_secuencia: float = duracion_secuencia
+
+	if turbo_activo:
+		tiempo_secuencia = maxf(
+			duracion_secuencia * (1.0 - REDUCCION_TIEMPO_TURBO),
+			2.0
+		)
+
+	temporizador.start(tiempo_secuencia)
 
 	qte_iniciado.emit(
 		"secuencia",
@@ -195,6 +229,7 @@ func preparar_qte_normal() -> void:
 	qte_mantener = false
 	manteniendo_tecla = false
 	tiempo_mantenido = 0.0
+	mantener_inicio_perfecto = false
 
 	qte_machacar = false
 	pulsaciones_actuales = 0
@@ -224,6 +259,18 @@ func comenzar_mantener() -> void:
 	if not qte_activo or not qte_mantener:
 		return
 
+	if manteniendo_tecla:
+		return
+
+	var tiempo_total: float = temporizador.wait_time
+	var tiempo_transcurrido: float = (
+		tiempo_total - temporizador.time_left
+	)
+
+	mantener_inicio_perfecto = (
+		tiempo_transcurrido <= tiempo_total * PERFECTO_MANTENER
+	)
+
 	manteniendo_tecla = true
 
 
@@ -243,7 +290,6 @@ func registrar_pulsacion() -> void:
 
 	pulsaciones_actuales += 1
 
-	# Actualiza el indicador de progreso.
 	progreso_machacar.emit(
 		pulsaciones_actuales,
 		pulsaciones_necesarias
@@ -253,13 +299,45 @@ func registrar_pulsacion() -> void:
 		acertar_qte()
 
 
-# Registra un acierto.
+# Registra un acierto normal o perfecto.
 func acertar_qte() -> void:
+	if not qte_activo:
+		return
+
+	var tiempo_total: float = temporizador.wait_time
+	var tiempo_transcurrido: float = (
+		tiempo_total - temporizador.time_left
+	)
+
+	var es_perfecto: bool = false
+
+	if qte_mantener:
+		es_perfecto = mantener_inicio_perfecto
+
+	elif qte_machacar:
+		es_perfecto = (
+			tiempo_transcurrido <= tiempo_total * PERFECTO_MACHACAR
+		)
+
+	elif qte_secuencia:
+		es_perfecto = (
+			tiempo_transcurrido <= tiempo_total * PERFECTO_SECUENCIA
+		)
+
+	else:
+		es_perfecto = (
+			tiempo_transcurrido <= tiempo_total * PERFECTO_NORMAL
+		)
+
 	qte_activo = false
 	preparar_qte_normal()
 
 	temporizador.stop()
-	qte_acertado.emit()
+
+	if es_perfecto:
+		qte_perfecto.emit()
+	else:
+		qte_acertado.emit()
 
 
 # Registra un fallo.

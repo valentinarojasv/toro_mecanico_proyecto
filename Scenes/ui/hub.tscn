@@ -4,6 +4,12 @@
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0xnns"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uh8m5"]
+bg_color = Color(0.039137952, 0.22535151, 0.5294284, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e87rw"]
+bg_color = Color(0.08193315, 0.27580547, 0.50758606, 1)
+
 [node name="HUB" type="CanvasLayer" unique_id=2035256680]
 
 [node name="barraequilibrio" type="ProgressBar" parent="." unique_id=1778128954]
@@ -16,3 +22,56 @@ theme_override_fonts/font = ExtResource("1_w4rgr")
 theme_override_styles/fill = SubResource("StyleBoxFlat_0xnns")
 step = 0.1
 value = 100.0
+
+[node name="EquilibrioLabel" type="Label" parent="barraequilibrio" unique_id=1214181174]
+layout_mode = 0
+offset_top = -17.0
+offset_right = 73.0
+offset_bottom = 1.0
+theme_override_fonts/font = ExtResource("1_w4rgr")
+theme_override_font_sizes/font_size = 14
+text = "EQUILIBRIO"
+
+[node name="ComboLabel" type="Label" parent="." unique_id=1402187255]
+offset_right = 40.0
+offset_bottom = 23.0
+theme_override_fonts/font = ExtResource("1_w4rgr")
+text = "COMBO: 0"
+
+[node name="PuntuacionLabel" type="Label" parent="." unique_id=117225769]
+offset_left = 15.0
+offset_top = 60.0
+offset_right = 120.0
+offset_bottom = 83.0
+theme_override_fonts/font = ExtResource("1_w4rgr")
+theme_override_font_sizes/font_size = 15
+text = "PUNTUACIÓN: 0"
+
+[node name="TiempoLabel" type="Label" parent="." unique_id=1612561344]
+offset_top = 80.0
+offset_right = 86.0
+offset_bottom = 103.0
+theme_override_fonts/font = ExtResource("1_w4rgr")
+text = "TIEMPO: 0 s"
+
+[node name="BarraTurbo" type="ProgressBar" parent="." unique_id=1696004176]
+offset_left = 937.0
+offset_top = 30.0
+offset_right = 1237.0
+offset_bottom = 60.0
+theme_override_styles/background = SubResource("StyleBoxFlat_uh8m5")
+theme_override_styles/fill = SubResource("StyleBoxFlat_e87rw")
+step = 1.0
+
+[node name="TurboLabel" type="Label" parent="BarraTurbo" unique_id=2043715270]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.1
+anchor_right = -0.1
+offset_left = 30.0
+offset_top = -17.0
+offset_right = 77.0
+offset_bottom = 1.0
+theme_override_fonts/font = ExtResource("1_w4rgr")
+theme_override_font_sizes/font_size = 14
+text = "TURBO"

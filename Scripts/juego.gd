@@ -6,6 +6,10 @@ extends Node2D
 signal equilibrio_cambiado(valor: float)
 signal equilibrio_agotado
 signal nivel_furia_cambiado(nivel: int)
+signal combo_cambiado(combo: int)
+signal puntuacion_cambiada(puntos: int)
+signal tiempo_cambiado(segundos: int)
+signal turbo_cambiado(carga: float)
 
 @onready var hud: CanvasLayer = $HUB
 @onready var toro: Node2D = $escenario/Toro
@@ -24,6 +28,34 @@ var tiempo_partida: float = 0.0
 var nivel_furia: int = 1
 var intervalo_qte: float = 1.8
 
+# Sistema de combos.
+var combo_actual: int = 0
+
+# Sistema de puntuación.
+var puntuacion_actual: int = 0
+var ultimo_segundo: int = 0
+
+# Sistema Turbo.
+var carga_turbo: float = 0.0
+var turbo_activo: bool = false
+var tiempo_turbo_restante: float = 0.0
+var ultimo_segundo_turbo: int = -1
+
+const CARGA_TURBO_MAXIMA: float = 100.0
+const CARGA_POR_PERFECTO: float = 15.0
+const PENALIZACION_CARGA_TURBO: float = 30.0
+const DURACION_TURBO: float = 5.0
+
+# Penalización de equilibrio durante el Turbo.
+const PENALIZACION_FALLO_EN_TURBO: float = 30.0
+
+# Efectos del Turbo.
+const MULTIPLICADOR_PUNTOS_TURBO: int = 2
+const MULTIPLICADOR_FRECUENCIA_TURBO: float = 1.4
+
+const PUNTOS_POR_SEGUNDO: int = 10
+const PUNTOS_POR_COMBO: int = 10
+
 const NIVEL_FURIA_MAXIMO: int = 5
 const SEGUNDOS_POR_NIVEL: float = 10.0
 
@@ -37,9 +69,13 @@ func _ready() -> void:
 
 	equilibrio_actual = configuracion.equilibrio_inicial
 
-	# Conecta el equilibrio y la furia con el HUD.
+	# Conecta los indicadores con el HUD.
 	equilibrio_cambiado.connect(hud.actualizar_equilibrio)
 	nivel_furia_cambiado.connect(hud.actualizar_nivel_furia)
+	combo_cambiado.connect(hud.actualizar_combo)
+	puntuacion_cambiada.connect(hud.actualizar_puntuacion)
+	tiempo_cambiado.connect(hud.actualizar_tiempo)
+	turbo_cambiado.connect(hud.actualizar_turbo)
 
 	# Conecta la furia con el movimiento del toro.
 	nivel_furia_cambiado.connect(toro.actualizar_nivel_furia)
@@ -47,6 +83,7 @@ func _ready() -> void:
 	# Conecta las señales de los QTE.
 	gestor_qte.qte_iniciado.connect(_on_qte_iniciado)
 	gestor_qte.qte_acertado.connect(_on_qte_acertado)
+	gestor_qte.qte_perfecto.connect(_on_qte_perfecto)
 	gestor_qte.qte_fallado.connect(_on_qte_fallado)
 	gestor_qte.progreso_machacar.connect(_on_progreso_machacar)
 
@@ -55,19 +92,34 @@ func _ready() -> void:
 	# Muestra los valores iniciales.
 	equilibrio_cambiado.emit(equilibrio_actual)
 	nivel_furia_cambiado.emit(nivel_furia)
+	combo_cambiado.emit(combo_actual)
+	puntuacion_cambiada.emit(puntuacion_actual)
+	tiempo_cambiado.emit(0)
+	turbo_cambiado.emit(carga_turbo)
 
 
 func _process(delta: float) -> void:
 	if configuracion == null or not partida_activa:
 		return
 
-	# Actualiza el nivel de furia.
-	actualizar_furia(delta)
+	# Actualiza el tiempo restante del Turbo.
+	if turbo_activo:
+		tiempo_turbo_restante -= delta
 
-	# Reduce el equilibrio constantemente.
-	modificar_equilibrio(
-		-configuracion.perdida_por_segundo * delta
-	)
+		if tiempo_turbo_restante <= 0.0:
+			desactivar_turbo()
+		else:
+			actualizar_contador_turbo()
+
+	# Actualiza el tiempo, la puntuación y la furia.
+	actualizar_furia(delta)
+	actualizar_puntuacion_tiempo()
+
+	# El Turbo detiene la pérdida automática de equilibrio.
+	if not turbo_activo:
+		modificar_equilibrio(
+			-configuracion.perdida_por_segundo * delta
+		)
 
 	if not partida_activa:
 		return
@@ -81,7 +133,7 @@ func _process(delta: float) -> void:
 	else:
 		tiempo_entre_qte += delta
 
-		if tiempo_entre_qte >= intervalo_qte:
+		if tiempo_entre_qte >= obtener_intervalo_qte():
 			iniciar_qte()
 
 
@@ -96,13 +148,56 @@ func actualizar_furia(delta: float) -> void:
 
 	if nuevo_nivel != nivel_furia:
 		nivel_furia = nuevo_nivel
-
 		configurar_dificultad_furia()
 
-		# Actualiza el HUD y el movimiento del toro.
 		nivel_furia_cambiado.emit(nivel_furia)
 
 		print("Nivel de furia: ", nivel_furia)
+
+
+# Devuelve el multiplicador actual de puntos.
+func obtener_multiplicador_puntos() -> int:
+	if turbo_activo:
+		return MULTIPLICADOR_PUNTOS_TURBO
+
+	return 1
+
+
+# Calcula el intervalo entre QTE según el Turbo.
+func obtener_intervalo_qte() -> float:
+	if turbo_activo:
+		return intervalo_qte / MULTIPLICADOR_FRECUENCIA_TURBO
+
+	return intervalo_qte
+
+
+# Suma puntos por cada segundo sobrevivido.
+func actualizar_puntuacion_tiempo() -> void:
+	var segundos_actuales: int = int(tiempo_partida)
+
+	if segundos_actuales > ultimo_segundo:
+		var segundos_ganados: int = (
+			segundos_actuales - ultimo_segundo
+		)
+
+		ultimo_segundo = segundos_actuales
+
+		var puntos_ganados: int = (
+			segundos_ganados
+			* PUNTOS_POR_SEGUNDO
+			* obtener_multiplicador_puntos()
+		)
+
+		puntuacion_actual += puntos_ganados
+
+		tiempo_cambiado.emit(segundos_actuales)
+		puntuacion_cambiada.emit(puntuacion_actual)
+
+		print(
+			"Tiempo: ", segundos_actuales,
+			" s | Puntos ganados: +", puntos_ganados,
+			" | Puntuación: ", puntuacion_actual
+		)
 
 
 # Configura la dificultad de cada nivel.
@@ -116,7 +211,7 @@ func configurar_dificultad_furia() -> void:
 			intervalo_qte = 1.4
 		3:
 			intervalo_qte = 1.1
-		4:
+		4, 5:
 			intervalo_qte = 0.8
 		5:
 			intervalo_qte = 0.6
@@ -126,7 +221,6 @@ func configurar_dificultad_furia() -> void:
 func iniciar_qte() -> void:
 	tiempo_entre_qte = 0.0
 
-	# Cada nivel desbloquea nuevos tipos de QTE.
 	var tipo_maximo: int = 1
 
 	match nivel_furia:
@@ -156,7 +250,15 @@ func iniciar_qte() -> void:
 
 # Recibe las teclas del jugador.
 func _unhandled_input(event: InputEvent) -> void:
-	if not partida_activa or not gestor_qte.qte_activo:
+	if not partida_activa:
+		return
+
+	# Activa el Turbo con Shift cuando está cargado.
+	if event.is_action_pressed("activar_turbo") and not event.is_echo():
+		activar_turbo()
+		return
+
+	if not gestor_qte.qte_activo:
 		return
 
 	# QTE de mantener ESPACIO.
@@ -190,6 +292,65 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 
+# Activa el Turbo cuando la barra está completa.
+func activar_turbo() -> void:
+	if turbo_activo:
+		return
+
+	if carga_turbo < CARGA_TURBO_MAXIMA:
+		return
+
+	turbo_activo = true
+	tiempo_turbo_restante = DURACION_TURBO
+	ultimo_segundo_turbo = -1
+
+	# Activa la reducción del tiempo de respuesta.
+	gestor_qte.configurar_turbo(true)
+
+	actualizar_contador_turbo()
+
+	print("TURBO ACTIVADO: 5 segundos")
+	print("MULTIPLICADOR DE PUNTOS: x2")
+	print("PÉRDIDA AUTOMÁTICA DE EQUILIBRIO: DETENIDA")
+	print("FRECUENCIA DE QTE: +40%")
+	print("TIEMPO DE RESPUESTA QTE: -30%")
+
+
+# Actualiza la cuenta regresiva del Turbo.
+func actualizar_contador_turbo() -> void:
+	if not turbo_activo:
+		return
+
+	var segundos_visibles: int = ceili(tiempo_turbo_restante)
+
+	if segundos_visibles != ultimo_segundo_turbo:
+		ultimo_segundo_turbo = segundos_visibles
+		hud.mostrar_turbo_activo(segundos_visibles)
+
+
+# Finaliza el Turbo y reinicia su carga.
+func desactivar_turbo() -> void:
+	if not turbo_activo:
+		return
+
+	turbo_activo = false
+	tiempo_turbo_restante = 0.0
+	ultimo_segundo_turbo = -1
+	carga_turbo = 0.0
+
+	# Recupera el tiempo de respuesta normal.
+	gestor_qte.configurar_turbo(false)
+
+	turbo_cambiado.emit(carga_turbo)
+	hud.mostrar_turbo_finalizado()
+
+	print("TURBO FINALIZADO. Carga: 0%")
+	print("MULTIPLICADOR DE PUNTOS: x1")
+	print("PÉRDIDA AUTOMÁTICA DE EQUILIBRIO: REACTIVADA")
+	print("FRECUENCIA DE QTE: NORMAL")
+	print("TIEMPO DE RESPUESTA QTE: NORMAL")
+
+
 # Muestra las instrucciones del QTE.
 func _on_qte_iniciado(
 	_accion: String, tecla: String, es_direccion: bool
@@ -207,16 +368,89 @@ func _on_progreso_machacar(
 	)
 
 
-# Recupera equilibrio al acertar.
+# Recupera equilibrio al acertar normalmente.
 func _on_qte_acertado() -> void:
 	qte_prompt.mostrar_resultado(true)
 	modificar_equilibrio(configuracion.recuperacion_qte)
+	aumentar_combo()
 
 
-# Pierde equilibrio al fallar.
+# Recupera equilibrio y carga Turbo por un QTE perfecto.
+func _on_qte_perfecto() -> void:
+	qte_prompt.mostrar_resultado(true)
+	modificar_equilibrio(configuracion.recuperacion_perfecta)
+	aumentar_combo()
+
+	# Solo acumula carga cuando el Turbo está inactivo.
+	if not turbo_activo:
+		carga_turbo = clampf(
+			carga_turbo + CARGA_POR_PERFECTO,
+			0.0,
+			CARGA_TURBO_MAXIMA
+		)
+
+		turbo_cambiado.emit(carga_turbo)
+
+	print("QTE PERFECTO: +", configuracion.recuperacion_perfecta)
+	print("Carga Turbo: ", carga_turbo, "%")
+
+
+# Pierde equilibrio y carga Turbo al fallar.
 func _on_qte_fallado() -> void:
 	qte_prompt.mostrar_resultado(false)
-	modificar_equilibrio(-configuracion.penalizacion_fallo)
+
+	# Aplica una penalización mayor durante el Turbo.
+	var penalizacion: float = configuracion.penalizacion_fallo
+
+	if turbo_activo:
+		penalizacion = PENALIZACION_FALLO_EN_TURBO
+
+	modificar_equilibrio(-penalizacion)
+	reiniciar_combo()
+
+	# La carga solo disminuye cuando el Turbo está inactivo.
+	if not turbo_activo:
+		carga_turbo = clampf(
+			carga_turbo - PENALIZACION_CARGA_TURBO,
+			0.0,
+			CARGA_TURBO_MAXIMA
+		)
+
+		turbo_cambiado.emit(carga_turbo)
+
+	print(
+		"QTE FALLADO. Equilibrio: -", penalizacion,
+		" | Carga Turbo: ", carga_turbo, "%"
+	)
+
+
+# Aumenta el combo y otorga puntos adicionales.
+func aumentar_combo() -> void:
+	combo_actual += 1
+	combo_cambiado.emit(combo_actual)
+
+	var bonificacion: int = (
+		combo_actual
+		* PUNTOS_POR_COMBO
+		* obtener_multiplicador_puntos()
+	)
+
+	puntuacion_actual += bonificacion
+	puntuacion_cambiada.emit(puntuacion_actual)
+
+	print(
+		"Combo: ", combo_actual,
+		" | Bonificación: +", bonificacion,
+		" | Puntuación: ", puntuacion_actual
+	)
+
+
+# Reinicia el combo cuando se falla.
+func reiniciar_combo() -> void:
+	combo_actual = 0
+	combo_cambiado.emit(combo_actual)
+
+	print("Combo reiniciado: ", combo_actual)
 
 
 # Actualiza el equilibrio y notifica al HUD.
@@ -233,21 +467,31 @@ func modificar_equilibrio(cantidad: float) -> void:
 		terminar_partida()
 
 
-# Reproduce la caída antes de GAME OVER.
+# Guarda el récord y reproduce la caída.
 func terminar_partida() -> void:
+	if not partida_activa:
+		return
+
 	partida_activa = false
 
 	gestor_qte.detener()
 	qte_prompt.ocultar_qte()
 
-	equilibrio_agotado.emit()
+	Record.guardar_record(puntuacion_actual)
 
+	print("Puntuación final: ", puntuacion_actual)
+	print("Récord actual: ", Record.puntuacion_record)
+
+	equilibrio_agotado.emit()
 	hud.actualizar_equilibrio(0.0)
 
+	# Reproduce la animación de caída del jinete.
 	jinete.caer()
 
+	# Espera la señal real declarada en jinete.gd.
 	await jinete.caida_terminada
 
+	# Abre la pantalla de fin de partida.
 	get_tree().change_scene_to_file(
 		"res://Scenes/ui/fin_juego.tscn"
 	)

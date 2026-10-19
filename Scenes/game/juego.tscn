@@ -11,7 +11,7 @@
 [ext_resource type="Script" uid="uid://dcwavokeniot4" path="res://Scripts/GestorQTE.gd" id="8_5cms2"]
 [ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="9_xfidg"]
 
-[sub_resource type="Resource" id="Resource_djoim"]
+[sub_resource type="Resource" id="Resource_rbg1w"]
 script = ExtResource("2_g775n")
 metadata/_custom_type_script = "uid://dyhkwa3akjq21"
 
@@ -19,13 +19,26 @@ metadata/_custom_type_script = "uid://dyhkwa3akjq21"
 script = ExtResource("5_xfidg")
 metadata/_custom_type_script = "uid://bosycal0tsw2n"
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xfidg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x2a0o"]
+bg_color = Color(1, 0.043137256, 0.047058824, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_813tl"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_djoim"]
+bg_color = Color(0.14509805, 0.3529412, 0.6784314, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j5vr0"]
+bg_color = Color(0.9529412, 0.105882354, 0.10980392, 1)
+
 [node name="Juego" type="Node2D" unique_id=1504673152]
 script = ExtResource("1_p2ibf")
-configuracion = SubResource("Resource_djoim")
+configuracion = SubResource("Resource_rbg1w")
 
 [node name="fondo" type="Sprite2D" parent="." unique_id=2079894343]
 z_index = -10
-position = Vector2(640, 360)
+position = Vector2(640.00006, 360)
 scale = Vector2(0.765, 0.765)
 texture = ExtResource("1_hm6jn")
 
@@ -58,16 +71,56 @@ offset_left = 54.0
 offset_top = 37.0
 offset_right = 354.0
 offset_bottom = 67.0
+theme_override_styles/fill = SubResource("StyleBoxFlat_xfidg")
+
+[node name="EquilibrioLabel" parent="HUB/barraequilibrio" index="0" unique_id=1214181174]
+offset_top = -26.0
+offset_bottom = -8.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_x2a0o")
+
+[node name="ComboLabel" parent="HUB" index="1" unique_id=1402187255]
+offset_left = 532.0
+offset_top = 42.0
+offset_right = 614.0
+offset_bottom = 61.0
+theme_override_font_sizes/font_size = 15
+
+[node name="PuntuacionLabel" parent="HUB" index="2" unique_id=117225769]
+offset_left = 532.0
+offset_top = 19.0
+offset_right = 637.0
+offset_bottom = 42.0
+
+[node name="TiempoLabel" parent="HUB" index="3" unique_id=1612561344]
+offset_left = 658.0
+offset_top = 42.0
+offset_right = 748.0
+offset_bottom = 65.0
+
+[node name="BarraTurbo" parent="HUB" index="4" unique_id=1696004176]
+offset_left = 906.0
+offset_top = 37.0
+offset_right = 1206.0
+offset_bottom = 67.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("9_xfidg")
+theme_override_styles/background = SubResource("StyleBoxFlat_813tl")
+theme_override_styles/fill = SubResource("StyleBoxFlat_djoim")
+
+[node name="TurboLabel" parent="HUB/BarraTurbo" index="0" unique_id=2043715270]
+offset_top = -26.0
+offset_bottom = -8.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_j5vr0")
 
 [node name="NivelFuria" type="Label" parent="HUB" unique_id=1925498009]
-offset_left = 230.0
-offset_top = 70.0
-offset_right = 344.0
-offset_bottom = 95.0
+offset_left = 658.0
+offset_top = 19.0
+offset_right = 772.0
+offset_bottom = 38.0
 scale = Vector2(1.0374948, 1)
 theme_override_fonts/font = ExtResource("9_xfidg")
-theme_override_font_sizes/font_size = 20
-text = "Furia: Nivel 1"
+theme_override_font_sizes/font_size = 15
+text = "FURIA: NIVEL 1"
 
 [node name="QTEPrompt" parent="HUB" unique_id=2131061750 instance=ExtResource("7_5cms2")]
 
@@ -82,6 +135,17 @@ offset_left = 927.99994
 offset_top = 372.0
 offset_right = 2702.0
 offset_bottom = 1259.0
+
+[node name="Node" type="Node" parent="HUB" unique_id=1286720725]
+
+[node name="EstadoTurboLabel" type="Label" parent="HUB" unique_id=1772329071]
+offset_left = 906.0
+offset_top = 67.0
+offset_right = 1060.0
+offset_bottom = 86.0
+theme_override_fonts/font = ExtResource("9_xfidg")
+theme_override_font_sizes/font_size = 15
+text = "TURBO NO DISPONIBLE"
 
 [node name="GestorQTE" type="Node" parent="." unique_id=958607742]
 script = ExtResource("8_5cms2")
