@@ -6,6 +6,12 @@ extends Control
 var numero_resultado: int = 0
 var mostrando_progreso: bool = false
 
+# Colores de los resultados.
+const COLOR_NORMAL: Color = Color.WHITE
+const COLOR_CORRECTO: Color = Color.GREEN
+const COLOR_PERFECTO: Color = Color.GOLD
+const COLOR_FALLASTE: Color = Color.RED
+
 
 func _ready() -> void:
 	hide()
@@ -19,6 +25,12 @@ func mostrar_qte(tecla: String, es_direccion: bool) -> void:
 	numero_resultado += 1
 	mostrando_progreso = false
 
+	# Recupera el color normal.
+	texto_qte.add_theme_color_override(
+		"font_color",
+		COLOR_NORMAL
+	)
+
 	if es_direccion:
 		texto_qte.text = "COMPENSA CON " + tecla
 	elif tecla.begins_with("SECUENCIA:"):
@@ -26,8 +38,7 @@ func mostrar_qte(tecla: String, es_direccion: bool) -> void:
 	elif tecla == "ESPACIO":
 		texto_qte.text = "MANTÉN ESPACIO"
 	elif tecla == "REPETIR ESPACIO":
-		texto_qte.text = "PULSA ESPACIO
-		 REPETIDAMENTE"
+		texto_qte.text = "PULSA ESPACIO\nREPETIDAMENTE"
 		mostrando_progreso = true
 	else:
 		texto_qte.text = "PRESIONA " + tecla
@@ -66,17 +77,34 @@ func actualizar_progreso(pulsaciones: int, necesarias: int) -> void:
 	)
 
 
-# Muestra CORRECTO o FALLASTE.
-func mostrar_resultado(correcto: bool) -> void:
+# Muestra el resultado del QTE.
+func mostrar_resultado(
+	correcto: bool,
+	perfecto: bool = false
+) -> void:
 	numero_resultado += 1
 	var resultado_actual: int = numero_resultado
 
 	mostrando_progreso = false
 
-	if correcto:
+	if perfecto:
+		texto_qte.text = "¡PERFECTO!"
+		texto_qte.add_theme_color_override(
+			"font_color",
+			COLOR_PERFECTO
+		)
+	elif correcto:
 		texto_qte.text = "¡CORRECTO!"
+		texto_qte.add_theme_color_override(
+			"font_color",
+			COLOR_CORRECTO
+		)
 	else:
 		texto_qte.text = "¡FALLASTE!"
+		texto_qte.add_theme_color_override(
+			"font_color",
+			COLOR_FALLASTE
+		)
 
 	anillo_tiempo.hide()
 	show()

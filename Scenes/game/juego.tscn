@@ -10,8 +10,14 @@
 [ext_resource type="PackedScene" uid="uid://c4ik6i2hj0uiu" path="res://Scenes/ui/qte_prompt.tscn" id="7_5cms2"]
 [ext_resource type="Script" uid="uid://dcwavokeniot4" path="res://Scripts/GestorQTE.gd" id="8_5cms2"]
 [ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="9_xfidg"]
+[ext_resource type="AudioStream" uid="uid://kli8xc8j5lrx" path="res://Audio/success.mp3" id="10_xfidg"]
+[ext_resource type="AudioStream" uid="uid://khlr6sq0puy5" path="res://Audio/fallo.mp3" id="12_djoim"]
+[ext_resource type="AudioStream" uid="uid://decnruribr4iu" path="res://Audio/perdidaturbo.mp3" id="13_813tl"]
+[ext_resource type="AudioStream" uid="uid://d2of5cwkhhiek" path="res://Audio/turbo.mp3" id="13_ixi3t"]
+[ext_resource type="AudioStream" uid="uid://c8cxukkwuvbw0" path="res://Audio/caidajinete.mp3" id="15_e4mmn"]
+[ext_resource type="AudioStream" uid="uid://c3b0dixs83ebf" path="res://Audio/game.mp3" id="16_66tbc"]
 
-[sub_resource type="Resource" id="Resource_rbg1w"]
+[sub_resource type="Resource" id="Resource_813tl"]
 script = ExtResource("2_g775n")
 metadata/_custom_type_script = "uid://dyhkwa3akjq21"
 
@@ -32,9 +38,43 @@ bg_color = Color(0.14509805, 0.3529412, 0.6784314, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j5vr0"]
 bg_color = Color(0.9529412, 0.105882354, 0.10980392, 1)
 
+[sub_resource type="Gradient" id="Gradient_xfidg"]
+offsets = PackedFloat32Array(0, 0.017730497)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_813tl"]
+gradient = SubResource("Gradient_xfidg")
+width = 80
+height = 80
+
+[sub_resource type="Gradient" id="Gradient_e4mmn"]
+offsets = PackedFloat32Array(0, 0.0070921984, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0.9468085, 0.9468085, 0.9468085, 1, 1, 1, 1, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_f6pym"]
+gradient = SubResource("Gradient_e4mmn")
+width = 100
+height = 100
+fill_from = Vector2(0, 0.011764706)
+
+[sub_resource type="Gradient" id="Gradient_ixi3t"]
+offsets = PackedFloat32Array(0, 0.021276595)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_0xnns"]
+gradient = SubResource("Gradient_ixi3t")
+width = 100
+height = 100
+
+[sub_resource type="Gradient" id="Gradient_0xnns"]
+offsets = PackedFloat32Array(0, 0.010638298)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_djoim"]
+gradient = SubResource("Gradient_0xnns")
+width = 100
+height = 100
+
 [node name="Juego" type="Node2D" unique_id=1504673152]
 script = ExtResource("1_p2ibf")
-configuracion = SubResource("Resource_rbg1w")
+configuracion = SubResource("Resource_813tl")
 
 [node name="fondo" type="Sprite2D" parent="." unique_id=2079894343]
 z_index = -10
@@ -147,12 +187,68 @@ theme_override_fonts/font = ExtResource("9_xfidg")
 theme_override_font_sizes/font_size = 15
 text = "TURBO NO DISPONIBLE"
 
+[node name="ControlesTactiles" type="Node2D" parent="HUB" unique_id=873026364]
+
+[node name="BotonIzquierda" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=159013670]
+position = Vector2(34, 407)
+scale = Vector2(1.453125, 1.21875)
+texture_normal = SubResource("GradientTexture2D_813tl")
+action = "qte_izq"
+
+[node name="BotonDerecha" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=758457140]
+position = Vector2(284, 407)
+texture_normal = SubResource("GradientTexture2D_f6pym")
+action = "qte_derecha"
+
+[node name="BotonArriba" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=474996549]
+position = Vector2(166, 322)
+texture_normal = SubResource("GradientTexture2D_f6pym")
+action = "qte_arriba"
+
+[node name="BotonAbajo" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=2118087980]
+position = Vector2(166, 485)
+texture_normal = SubResource("GradientTexture2D_f6pym")
+action = "qte_abajo"
+
+[node name="BotonAccion" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=273867738]
+position = Vector2(906, 485)
+texture_normal = SubResource("GradientTexture2D_0xnns")
+action = "accion"
+
+[node name="BotonTurbo" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=1558686094]
+position = Vector2(1036, 485)
+texture_normal = SubResource("GradientTexture2D_djoim")
+action = "activar_turbo"
+
 [node name="GestorQTE" type="Node" parent="." unique_id=958607742]
 script = ExtResource("8_5cms2")
 
 [node name="TemporizadorQTE" type="Timer" parent="GestorQTE" unique_id=1058668747]
 wait_time = 2.0
 one_shot = true
+
+[node name="SonidoQTECorrecto" type="AudioStreamPlayer" parent="." unique_id=1852938972]
+stream = ExtResource("10_xfidg")
+
+[node name="SonidoQTEFallido" type="AudioStreamPlayer" parent="." unique_id=927312067]
+stream = ExtResource("12_djoim")
+volume_db = -2.0
+
+[node name="SonidoTurbo" type="AudioStreamPlayer" parent="." unique_id=445871908]
+stream = ExtResource("13_ixi3t")
+
+[node name="SonidoTurboFinalizado" type="AudioStreamPlayer" parent="." unique_id=1966969120]
+stream = ExtResource("13_813tl")
+volume_db = 20.0
+
+[node name="SonidoCaida" type="AudioStreamPlayer" parent="." unique_id=1133649041]
+stream = ExtResource("15_e4mmn")
+volume_db = 10.0
+
+[node name="MusicaFondo" type="AudioStreamPlayer" parent="." unique_id=1231323453]
+stream = ExtResource("16_66tbc")
+volume_db = -10.0
+autoplay = true
 
 [connection signal="equilibrio_agotado" from="." to="escenario/Toro/movimiento/Puntomontura/Jinete" method="caer"]
 [connection signal="equilibrio_cambiado" from="." to="HUB" method="_on_juego_equilibrio_cambiado"]

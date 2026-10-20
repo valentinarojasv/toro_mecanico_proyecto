@@ -19,6 +19,13 @@ signal turbo_cambiado(carga: float)
 @onready var qte_prompt: Control = $HUB/QTEPrompt
 @onready var temporizador_qte: Timer = $GestorQTE/TemporizadorQTE
 
+# Reproductores de sonidos.
+@onready var sonido_qte_correcto: AudioStreamPlayer = $SonidoQTECorrecto
+@onready var sonido_qte_fallido: AudioStreamPlayer = $SonidoQTEFallido
+@onready var sonido_turbo: AudioStreamPlayer = $SonidoTurbo
+@onready var sonido_turbo_finalizado: AudioStreamPlayer = $SonidoTurboFinalizado
+@onready var sonido_caida: AudioStreamPlayer = $SonidoCaida
+
 var equilibrio_actual: float = 100.0
 var partida_activa: bool = true
 var tiempo_entre_qte: float = 0.0
@@ -58,6 +65,9 @@ const PUNTOS_POR_COMBO: int = 10
 
 const NIVEL_FURIA_MAXIMO: int = 5
 const SEGUNDOS_POR_NIVEL: float = 10.0
+
+# Tiempo adicional para apreciar la caída.
+const ESPERA_DESPUES_CAIDA: float = 2.0
 
 
 func _ready() -> void:
@@ -211,7 +221,7 @@ func configurar_dificultad_furia() -> void:
 			intervalo_qte = 1.4
 		3:
 			intervalo_qte = 1.1
-		4, 5:
+		4:
 			intervalo_qte = 0.8
 		5:
 			intervalo_qte = 0.6
@@ -304,6 +314,9 @@ func activar_turbo() -> void:
 	tiempo_turbo_restante = DURACION_TURBO
 	ultimo_segundo_turbo = -1
 
+	# Reproduce el sonido de activación del Turbo.
+	sonido_turbo.play()
+
 	# Activa la reducción del tiempo de respuesta.
 	gestor_qte.configurar_turbo(true)
 
@@ -338,6 +351,9 @@ func desactivar_turbo() -> void:
 	ultimo_segundo_turbo = -1
 	carga_turbo = 0.0
 
+	# Reproduce el sonido de finalización del Turbo.
+	sonido_turbo_finalizado.play()
+
 	# Recupera el tiempo de respuesta normal.
 	gestor_qte.configurar_turbo(false)
 
@@ -371,13 +387,22 @@ func _on_progreso_machacar(
 # Recupera equilibrio al acertar normalmente.
 func _on_qte_acertado() -> void:
 	qte_prompt.mostrar_resultado(true)
+
+	# Reproduce el sonido del acierto.
+	sonido_qte_correcto.play()
+
 	modificar_equilibrio(configuracion.recuperacion_qte)
 	aumentar_combo()
 
 
 # Recupera equilibrio y carga Turbo por un QTE perfecto.
 func _on_qte_perfecto() -> void:
-	qte_prompt.mostrar_resultado(true)
+	# Muestra PERFECTO en dorado.
+	qte_prompt.mostrar_resultado(true, true)
+
+	# Reproduce el sonido del acierto perfecto.
+	sonido_qte_correcto.play()
+
 	modificar_equilibrio(configuracion.recuperacion_perfecta)
 	aumentar_combo()
 
@@ -398,6 +423,9 @@ func _on_qte_perfecto() -> void:
 # Pierde equilibrio y carga Turbo al fallar.
 func _on_qte_fallado() -> void:
 	qte_prompt.mostrar_resultado(false)
+
+	# Reproduce el sonido de fallo.
+	sonido_qte_fallido.play()
 
 	# Aplica una penalización mayor durante el Turbo.
 	var penalizacion: float = configuracion.penalizacion_fallo
@@ -485,11 +513,18 @@ func terminar_partida() -> void:
 	equilibrio_agotado.emit()
 	hud.actualizar_equilibrio(0.0)
 
-	# Reproduce la animación de caída del jinete.
+	# Detiene el sonido de fallo para destacar la caída.
+	sonido_qte_fallido.stop()
+
+	# Reproduce el sonido y la animación de caída.
+	sonido_caida.play()
 	jinete.caer()
 
-	# Espera la señal real declarada en jinete.gd.
+	# Espera a que termine la animación del jinete.
 	await jinete.caida_terminada
+
+	# Mantiene visible la caída durante 2 segundos más.
+	await get_tree().create_timer(ESPERA_DESPUES_CAIDA).timeout
 
 	# Abre la pantalla de fin de partida.
 	get_tree().change_scene_to_file(
