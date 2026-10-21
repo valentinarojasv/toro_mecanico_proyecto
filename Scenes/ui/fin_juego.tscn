@@ -4,6 +4,8 @@
 [ext_resource type="Script" uid="uid://jo7ed40uaiok" path="res://Scripts/fin_juego.gd" id="1_lon1h"]
 [ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="3_bshie"]
 [ext_resource type="Texture2D" uid="uid://4227ra1y8og0" path="res://Assets/final/fondogameover.png" id="3_pwpxn"]
+[ext_resource type="AudioStream" uid="uid://cooxsyek1wa3l" path="res://Audio/UI.mp3" id="5_60wl0"]
+[ext_resource type="Texture2D" uid="uid://dins54geyxmfn" path="res://Assets/final/btnReintentar.png" id="5_aahof"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1k5o2"]
 bg_color = Color(0.7372549, 0.16862746, 0.20784314, 0.6039216)
@@ -60,14 +62,16 @@ text = "¡TE HAS CAÍDO!"
 
 [node name="BotonReintentar" type="Button" parent="." unique_id=1234061767]
 layout_mode = 0
-offset_left = 520.0
-offset_top = 585.0
-offset_right = 733.0
-offset_bottom = 657.0
+offset_left = 485.0
+offset_top = 543.0
+offset_right = 754.0
+offset_bottom = 668.0
 theme_override_fonts/font = ExtResource("1_fxh24")
 theme_override_font_sizes/font_size = 35
 theme_override_styles/normal = SubResource("StyleBoxFlat_ng2od")
-text = "Reintentar"
+icon = ExtResource("5_aahof")
+flat = true
+expand_icon = true
 
 [node name="Gameover" type="Label" parent="." unique_id=1060465433]
 layout_mode = 0
@@ -81,9 +85,9 @@ text = "GAME OVER"
 
 [node name="PuntuacionFinalLabel" type="Label" parent="." unique_id=35201352]
 layout_mode = 0
-offset_left = 485.0
+offset_left = 473.0
 offset_top = 255.0
-offset_right = 781.0
+offset_right = 769.0
 offset_bottom = 293.0
 theme_override_fonts/font = ExtResource("3_bshie")
 theme_override_font_sizes/font_size = 30
@@ -91,10 +95,14 @@ text = "PUNTUACIÓN FINAL: 0"
 
 [node name="RecordLabel" type="Label" parent="." unique_id=1764806791]
 layout_mode = 0
-offset_left = 559.0
-offset_top = 364.0
-offset_right = 700.0
-offset_bottom = 402.0
+offset_left = 549.0
+offset_top = 363.0
+offset_right = 690.0
+offset_bottom = 401.0
 theme_override_fonts/font = ExtResource("3_bshie")
 theme_override_font_sizes/font_size = 30
 text = "RÉCORD: 0"
+
+[node name="MusicaGameOver" type="AudioStreamPlayer" parent="." unique_id=1204258658]
+stream = ExtResource("5_60wl0")
+autoplay = true

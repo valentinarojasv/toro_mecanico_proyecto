@@ -2,8 +2,6 @@
 
 [ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="1_w4rgr"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0xnns"]
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_uh8m5"]
 bg_color = Color(0.039137952, 0.22535151, 0.5294284, 1)
 
@@ -19,7 +17,6 @@ offset_right = 330.0
 offset_bottom = 60.0
 theme_override_colors/font_color = Color(0.0056611365, 0.005661154, 0.005661178, 1)
 theme_override_fonts/font = ExtResource("1_w4rgr")
-theme_override_styles/fill = SubResource("StyleBoxFlat_0xnns")
 step = 0.1
 value = 100.0
 
@@ -37,15 +34,6 @@ offset_right = 40.0
 offset_bottom = 23.0
 theme_override_fonts/font = ExtResource("1_w4rgr")
 text = "COMBO: 0"
-
-[node name="PuntuacionLabel" type="Label" parent="." unique_id=117225769]
-offset_left = 15.0
-offset_top = 60.0
-offset_right = 120.0
-offset_bottom = 83.0
-theme_override_fonts/font = ExtResource("1_w4rgr")
-theme_override_font_sizes/font_size = 15
-text = "PUNTUACIÓN: 0"
 
 [node name="TiempoLabel" type="Label" parent="." unique_id=1612561344]
 offset_top = 80.0
@@ -75,3 +63,22 @@ offset_bottom = 1.0
 theme_override_fonts/font = ExtResource("1_w4rgr")
 theme_override_font_sizes/font_size = 14
 text = "TURBO"
+
+[node name="PuntuacionLabel" type="Label" parent="." unique_id=117225769]
+offset_left = 15.0
+offset_top = 60.0
+offset_right = 120.0
+offset_bottom = 83.0
+theme_override_fonts/font = ExtResource("1_w4rgr")
+theme_override_font_sizes/font_size = 15
+text = "PUNTUACIÓN: 0"
+
+[node name="EfectoTurbo" type="ColorRect" parent="." unique_id=1877031781]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0.54901963, 1, 0.38431373)

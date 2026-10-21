@@ -2,23 +2,29 @@
 
 [ext_resource type="Texture2D" uid="uid://c4qmfiqdnsisx" path="res://Assets/final/fondo.png" id="1_hm6jn"]
 [ext_resource type="Script" uid="uid://d2xvge62b8ua2" path="res://Scripts/juego.gd" id="1_p2ibf"]
-[ext_resource type="Script" uid="uid://dyhkwa3akjq21" path="res://Resources/configuracion_equilibrio.gd" id="2_g775n"]
+[ext_resource type="Script" uid="uid://dyhkwa3akjq21" path="res://Resources/configuracion_equilibrio.gd" id="2_2qyif"]
 [ext_resource type="PackedScene" uid="uid://bgk6s1dswtnwr" path="res://Scenes/entidades/toro.tscn" id="2_wbnfm"]
 [ext_resource type="PackedScene" uid="uid://gq2jbugprda5" path="res://Scenes/ui/hub.tscn" id="3_wbnfm"]
 [ext_resource type="Script" uid="uid://bosycal0tsw2n" path="res://Resources/configuracion_toro.gd" id="5_xfidg"]
 [ext_resource type="Script" uid="uid://cfq4sakqk4nqw" path="res://Scripts/hub.gd" id="6_ho3tb"]
 [ext_resource type="PackedScene" uid="uid://c4ik6i2hj0uiu" path="res://Scenes/ui/qte_prompt.tscn" id="7_5cms2"]
 [ext_resource type="Script" uid="uid://dcwavokeniot4" path="res://Scripts/GestorQTE.gd" id="8_5cms2"]
+[ext_resource type="Texture2D" uid="uid://k2va1fv2y8b7" path="res://Assets/final/Botones_tactiles/letra A.png" id="9_6hfqe"]
 [ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="9_xfidg"]
+[ext_resource type="Texture2D" uid="uid://d0p3h7427f6kt" path="res://Assets/final/Botones_tactiles/letra D.png" id="10_20ejb"]
 [ext_resource type="AudioStream" uid="uid://kli8xc8j5lrx" path="res://Audio/success.mp3" id="10_xfidg"]
+[ext_resource type="Texture2D" uid="uid://xpcvqq8a7cqa" path="res://Assets/final/Botones_tactiles/letra W.png" id="11_w102m"]
+[ext_resource type="Texture2D" uid="uid://bu1obketk3gbg" path="res://Assets/final/Botones_tactiles/letra S.png" id="12_2qyif"]
 [ext_resource type="AudioStream" uid="uid://khlr6sq0puy5" path="res://Audio/fallo.mp3" id="12_djoim"]
 [ext_resource type="AudioStream" uid="uid://decnruribr4iu" path="res://Audio/perdidaturbo.mp3" id="13_813tl"]
 [ext_resource type="AudioStream" uid="uid://d2of5cwkhhiek" path="res://Audio/turbo.mp3" id="13_ixi3t"]
+[ext_resource type="Texture2D" uid="uid://dumekuv4smqhq" path="res://Assets/final/Botones_tactiles/Espacio.png" id="13_w102m"]
+[ext_resource type="Texture2D" uid="uid://b14ak4lgkggq1" path="res://Assets/final/Botones_tactiles/Turbo.png" id="14_2qyif"]
 [ext_resource type="AudioStream" uid="uid://c8cxukkwuvbw0" path="res://Audio/caidajinete.mp3" id="15_e4mmn"]
 [ext_resource type="AudioStream" uid="uid://c3b0dixs83ebf" path="res://Audio/game.mp3" id="16_66tbc"]
 
-[sub_resource type="Resource" id="Resource_813tl"]
-script = ExtResource("2_g775n")
+[sub_resource type="Resource" id="Resource_w102m"]
+script = ExtResource("2_2qyif")
 metadata/_custom_type_script = "uid://dyhkwa3akjq21"
 
 [sub_resource type="Resource" id="Resource_ixi3t"]
@@ -38,47 +44,14 @@ bg_color = Color(0.14509805, 0.3529412, 0.6784314, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j5vr0"]
 bg_color = Color(0.9529412, 0.105882354, 0.10980392, 1)
 
-[sub_resource type="Gradient" id="Gradient_xfidg"]
-offsets = PackedFloat32Array(0, 0.017730497)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_813tl"]
-gradient = SubResource("Gradient_xfidg")
-width = 80
-height = 80
-
-[sub_resource type="Gradient" id="Gradient_e4mmn"]
-offsets = PackedFloat32Array(0, 0.0070921984, 1)
-colors = PackedColorArray(0, 0, 0, 1, 0.9468085, 0.9468085, 0.9468085, 1, 1, 1, 1, 1)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_f6pym"]
-gradient = SubResource("Gradient_e4mmn")
-width = 100
-height = 100
-fill_from = Vector2(0, 0.011764706)
-
-[sub_resource type="Gradient" id="Gradient_ixi3t"]
-offsets = PackedFloat32Array(0, 0.021276595)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_0xnns"]
-gradient = SubResource("Gradient_ixi3t")
-width = 100
-height = 100
-
-[sub_resource type="Gradient" id="Gradient_0xnns"]
-offsets = PackedFloat32Array(0, 0.010638298)
-
-[sub_resource type="GradientTexture2D" id="GradientTexture2D_djoim"]
-gradient = SubResource("Gradient_0xnns")
-width = 100
-height = 100
-
 [node name="Juego" type="Node2D" unique_id=1504673152]
 script = ExtResource("1_p2ibf")
-configuracion = SubResource("Resource_813tl")
+configuracion = SubResource("Resource_w102m")
+metadata/_edit_horizontal_guides_ = [0.0]
 
 [node name="fondo" type="Sprite2D" parent="." unique_id=2079894343]
 z_index = -10
-position = Vector2(640.00006, 360)
+position = Vector2(640, 360)
 scale = Vector2(0.765, 0.765)
 texture = ExtResource("1_hm6jn")
 
@@ -125,19 +98,13 @@ offset_right = 614.0
 offset_bottom = 61.0
 theme_override_font_sizes/font_size = 15
 
-[node name="PuntuacionLabel" parent="HUB" index="2" unique_id=117225769]
-offset_left = 532.0
-offset_top = 19.0
-offset_right = 637.0
-offset_bottom = 42.0
-
-[node name="TiempoLabel" parent="HUB" index="3" unique_id=1612561344]
+[node name="TiempoLabel" parent="HUB" index="2" unique_id=1612561344]
 offset_left = 658.0
 offset_top = 42.0
 offset_right = 748.0
 offset_bottom = 65.0
 
-[node name="BarraTurbo" parent="HUB" index="4" unique_id=1696004176]
+[node name="BarraTurbo" parent="HUB" index="3" unique_id=1696004176]
 offset_left = 906.0
 offset_top = 37.0
 offset_right = 1206.0
@@ -151,6 +118,12 @@ theme_override_styles/fill = SubResource("StyleBoxFlat_djoim")
 offset_top = -26.0
 offset_bottom = -8.0
 theme_override_styles/normal = SubResource("StyleBoxFlat_j5vr0")
+
+[node name="PuntuacionLabel" parent="HUB" index="4" unique_id=117225769]
+offset_left = 532.0
+offset_top = 19.0
+offset_right = 637.0
+offset_bottom = 42.0
 
 [node name="NivelFuria" type="Label" parent="HUB" unique_id=1925498009]
 offset_left = 658.0
@@ -171,10 +144,10 @@ offset_right = 746.0
 offset_bottom = 586.0
 
 [node name="AnilloTiempo" parent="HUB/QTEPrompt" index="1" unique_id=1186575703]
-offset_left = 927.99994
-offset_top = 372.0
-offset_right = 2702.0
-offset_bottom = 1259.0
+offset_left = 952.99994
+offset_top = 392.0
+offset_right = 2727.0
+offset_bottom = 1279.0
 
 [node name="Node" type="Node" parent="HUB" unique_id=1286720725]
 
@@ -190,35 +163,46 @@ text = "TURBO NO DISPONIBLE"
 [node name="ControlesTactiles" type="Node2D" parent="HUB" unique_id=873026364]
 
 [node name="BotonIzquierda" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=159013670]
-position = Vector2(34, 407)
-scale = Vector2(1.453125, 1.21875)
-texture_normal = SubResource("GradientTexture2D_813tl")
+position = Vector2(37, 392.00003)
+scale = Vector2(0.08144797, 0.0801012)
+texture_normal = ExtResource("9_6hfqe")
 action = "qte_izq"
+visibility_mode = 1
 
 [node name="BotonDerecha" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=758457140]
-position = Vector2(284, 407)
-texture_normal = SubResource("GradientTexture2D_f6pym")
+position = Vector2(212, 392)
+scale = Vector2(0.08823529, 0.0817875)
+texture_normal = ExtResource("10_20ejb")
 action = "qte_derecha"
+visibility_mode = 1
 
 [node name="BotonArriba" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=474996549]
-position = Vector2(166, 322)
-texture_normal = SubResource("GradientTexture2D_f6pym")
+position = Vector2(127, 326)
+scale = Vector2(0.08144797, 0.08094434)
+texture_normal = ExtResource("11_w102m")
 action = "qte_arriba"
+visibility_mode = 1
 
 [node name="BotonAbajo" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=2118087980]
-position = Vector2(166, 485)
-texture_normal = SubResource("GradientTexture2D_f6pym")
+position = Vector2(127, 461)
+scale = Vector2(0.08144796, 0.080876164)
+texture_normal = ExtResource("12_2qyif")
 action = "qte_abajo"
+visibility_mode = 1
 
 [node name="BotonAccion" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=273867738]
-position = Vector2(906, 485)
-texture_normal = SubResource("GradientTexture2D_0xnns")
+position = Vector2(893.00006, 470)
+scale = Vector2(0.08603418, 0.09277242)
+texture_normal = ExtResource("13_w102m")
 action = "accion"
+visibility_mode = 1
 
 [node name="BotonTurbo" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=1558686094]
-position = Vector2(1036, 485)
-texture_normal = SubResource("GradientTexture2D_djoim")
+position = Vector2(1043, 461)
+scale = Vector2(0.1108597, 0.08171864)
+texture_normal = ExtResource("14_2qyif")
 action = "activar_turbo"
+visibility_mode = 1
 
 [node name="GestorQTE" type="Node" parent="." unique_id=958607742]
 script = ExtResource("8_5cms2")
@@ -247,7 +231,6 @@ volume_db = 10.0
 
 [node name="MusicaFondo" type="AudioStreamPlayer" parent="." unique_id=1231323453]
 stream = ExtResource("16_66tbc")
-volume_db = -10.0
 autoplay = true
 
 [connection signal="equilibrio_agotado" from="." to="escenario/Toro/movimiento/Puntomontura/Jinete" method="caer"]

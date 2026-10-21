@@ -19,6 +19,9 @@ signal turbo_cambiado(carga: float)
 @onready var qte_prompt: Control = $HUB/QTEPrompt
 @onready var temporizador_qte: Timer = $GestorQTE/TemporizadorQTE
 
+# Efecto visual del Turbo.
+@onready var efecto_turbo: ColorRect = $HUB/EfectoTurbo
+
 # Reproductores de sonidos.
 @onready var sonido_qte_correcto: AudioStreamPlayer = $SonidoQTECorrecto
 @onready var sonido_qte_fallido: AudioStreamPlayer = $SonidoQTEFallido
@@ -48,6 +51,10 @@ var turbo_activo: bool = false
 var tiempo_turbo_restante: float = 0.0
 var ultimo_segundo_turbo: int = -1
 
+# Control del destello visual.
+var animacion_efecto_turbo: Tween
+
+# Configuración de carga del Turbo.
 const CARGA_TURBO_MAXIMA: float = 100.0
 const CARGA_POR_PERFECTO: float = 15.0
 const PENALIZACION_CARGA_TURBO: float = 30.0
@@ -78,6 +85,11 @@ func _ready() -> void:
 	randomize()
 
 	equilibrio_actual = configuracion.equilibrio_inicial
+
+	# Prepara el efecto visual del Turbo.
+	efecto_turbo.visible = false
+	efecto_turbo.modulate.a = 0.0
+	efecto_turbo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	# Conecta los indicadores con el HUD.
 	equilibrio_cambiado.connect(hud.actualizar_equilibrio)
@@ -317,6 +329,9 @@ func activar_turbo() -> void:
 	# Reproduce el sonido de activación del Turbo.
 	sonido_turbo.play()
 
+	# Muestra el destello azul.
+	mostrar_efecto_turbo()
+
 	# Activa la reducción del tiempo de respuesta.
 	gestor_qte.configurar_turbo(true)
 
@@ -327,6 +342,45 @@ func activar_turbo() -> void:
 	print("PÉRDIDA AUTOMÁTICA DE EQUILIBRIO: DETENIDA")
 	print("FRECUENCIA DE QTE: +40%")
 	print("TIEMPO DE RESPUESTA QTE: -30%")
+
+
+# Muestra un destello azul breve al activar el Turbo.
+func mostrar_efecto_turbo() -> void:
+	# Detiene una animación anterior si todavía existe.
+	if animacion_efecto_turbo != null:
+		if animacion_efecto_turbo.is_running():
+			animacion_efecto_turbo.kill()
+
+	# Prepara el rectángulo para un nuevo destello.
+	efecto_turbo.modulate.a = 0.0
+	efecto_turbo.visible = true
+
+	# Aparece rápidamente y después desaparece.
+	animacion_efecto_turbo = create_tween()
+
+	animacion_efecto_turbo.tween_property(
+		efecto_turbo,
+		"modulate:a",
+		1.0,
+		0.12
+	)
+
+	animacion_efecto_turbo.tween_property(
+		efecto_turbo,
+		"modulate:a",
+		0.0,
+		0.35
+	)
+
+	animacion_efecto_turbo.tween_callback(
+		ocultar_efecto_turbo
+	)
+
+
+# Oculta completamente el destello.
+func ocultar_efecto_turbo() -> void:
+	efecto_turbo.visible = false
+	efecto_turbo.modulate.a = 0.0
 
 
 # Actualiza la cuenta regresiva del Turbo.
