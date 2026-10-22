@@ -12,18 +12,25 @@
 [ext_resource type="Texture2D" uid="uid://k2va1fv2y8b7" path="res://Assets/final/Botones_tactiles/letra A.png" id="9_6hfqe"]
 [ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="9_xfidg"]
 [ext_resource type="Texture2D" uid="uid://d0p3h7427f6kt" path="res://Assets/final/Botones_tactiles/letra D.png" id="10_20ejb"]
-[ext_resource type="AudioStream" uid="uid://kli8xc8j5lrx" path="res://Audio/success.mp3" id="10_xfidg"]
 [ext_resource type="Texture2D" uid="uid://xpcvqq8a7cqa" path="res://Assets/final/Botones_tactiles/letra W.png" id="11_w102m"]
 [ext_resource type="Texture2D" uid="uid://bu1obketk3gbg" path="res://Assets/final/Botones_tactiles/letra S.png" id="12_2qyif"]
-[ext_resource type="AudioStream" uid="uid://khlr6sq0puy5" path="res://Audio/fallo.mp3" id="12_djoim"]
-[ext_resource type="AudioStream" uid="uid://decnruribr4iu" path="res://Audio/perdidaturbo.mp3" id="13_813tl"]
-[ext_resource type="AudioStream" uid="uid://d2of5cwkhhiek" path="res://Audio/turbo.mp3" id="13_ixi3t"]
+[ext_resource type="AudioStream" uid="uid://bkxfjm33ut43v" path="res://Audio/perdidaturbo.ogg" id="13_813tl"]
 [ext_resource type="Texture2D" uid="uid://dumekuv4smqhq" path="res://Assets/final/Botones_tactiles/Espacio.png" id="13_w102m"]
 [ext_resource type="Texture2D" uid="uid://b14ak4lgkggq1" path="res://Assets/final/Botones_tactiles/Turbo.png" id="14_2qyif"]
-[ext_resource type="AudioStream" uid="uid://c8cxukkwuvbw0" path="res://Audio/caidajinete.mp3" id="15_e4mmn"]
-[ext_resource type="AudioStream" uid="uid://c3b0dixs83ebf" path="res://Audio/game.mp3" id="16_66tbc"]
+[ext_resource type="Script" uid="uid://ct7pauf6ri547" path="res://Scripts/menu_pausa.gd" id="16_lwand"]
+[ext_resource type="Texture2D" uid="uid://drctupw5rgbqv" path="res://Assets/final/PanelMenuPausa.png" id="17_08o18"]
+[ext_resource type="Texture2D" uid="uid://2sn0c55x4pu8" path="res://Assets/final/FondoMenuPausa.png" id="17_v38m5"]
+[ext_resource type="Texture2D" uid="uid://dkkabymvic7p" path="res://Assets/final/BtnMenuPrincipalpng.png" id="18_2jiie"]
+[ext_resource type="Texture2D" uid="uid://bqklv0ovpbldt" path="res://Assets/final/BtnContinuar.png" id="19_v38m5"]
+[ext_resource type="Texture2D" uid="uid://bm7rj54qbd4c7" path="res://Assets/final/BtnPausa.png" id="21_1opi0"]
+[ext_resource type="AudioStream" uid="uid://dw3h85fh58w6c" path="res://Audio/success.ogg" id="23_1opi0"]
+[ext_resource type="AudioStream" uid="uid://d0letdy60bhet" path="res://Audio/fallo.ogg" id="24_p13vo"]
+[ext_resource type="AudioStream" uid="uid://bv2xycq1vdc7o" path="res://Audio/turbo.ogg" id="25_o5etn"]
+[ext_resource type="AudioStream" uid="uid://cdau3mevxwq5t" path="res://Audio/caidajinete.ogg" id="27_cq3xe"]
+[ext_resource type="AudioStream" uid="uid://dnn5t03ijmvby" path="res://Audio/UI.ogg" id="28_5po78"]
+[ext_resource type="AudioStream" uid="uid://c7g88oy06rlm2" path="res://Audio/Perfect.ogg" id="29_p13vo"]
 
-[sub_resource type="Resource" id="Resource_w102m"]
+[sub_resource type="Resource" id="Resource_dpgbr"]
 script = ExtResource("2_2qyif")
 metadata/_custom_type_script = "uid://dyhkwa3akjq21"
 
@@ -46,7 +53,7 @@ bg_color = Color(0.9529412, 0.105882354, 0.10980392, 1)
 
 [node name="Juego" type="Node2D" unique_id=1504673152]
 script = ExtResource("1_p2ibf")
-configuracion = SubResource("Resource_w102m")
+configuracion = SubResource("Resource_dpgbr")
 metadata/_edit_horizontal_guides_ = [0.0]
 
 [node name="fondo" type="Sprite2D" parent="." unique_id=2079894343]
@@ -204,6 +211,67 @@ texture_normal = ExtResource("14_2qyif")
 action = "activar_turbo"
 visibility_mode = 1
 
+[node name="MenuPausa" type="Control" parent="HUB" unique_id=1595186431]
+process_mode = 3
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("16_lwand")
+
+[node name="FondoPausa" type="TextureRect" parent="HUB/MenuPausa" unique_id=1148541322]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("17_v38m5")
+expand_mode = 1
+
+[node name="TextureRect" type="TextureRect" parent="HUB/MenuPausa/FondoPausa" unique_id=1481970608]
+layout_mode = 0
+offset_left = 212.0
+offset_top = 86.0
+offset_right = 1039.0
+offset_bottom = 632.0
+texture = ExtResource("17_08o18")
+expand_mode = 1
+
+[node name="BotonMenuPrincipal" type="Button" parent="HUB/MenuPausa" unique_id=1950487093]
+layout_mode = 0
+offset_left = 448.0
+offset_top = 322.0
+offset_right = 800.0
+offset_bottom = 551.0
+theme_override_fonts/font = ExtResource("9_xfidg")
+icon = ExtResource("18_2jiie")
+flat = true
+expand_icon = true
+
+[node name="BotonContinuar" type="Button" parent="HUB/MenuPausa" unique_id=1206063658]
+layout_mode = 0
+offset_left = 448.0
+offset_top = 256.0
+offset_right = 814.0
+offset_bottom = 400.0
+theme_override_fonts/font = ExtResource("9_xfidg")
+icon = ExtResource("19_v38m5")
+flat = true
+expand_icon = true
+
+[node name="BotonPausa" type="Button" parent="HUB" unique_id=1415721335]
+offset_left = 591.0
+offset_top = 632.0
+offset_right = 683.0
+offset_bottom = 720.0
+icon = ExtResource("21_1opi0")
+flat = true
+expand_icon = true
+
 [node name="GestorQTE" type="Node" parent="." unique_id=958607742]
 script = ExtResource("8_5cms2")
 
@@ -212,26 +280,29 @@ wait_time = 2.0
 one_shot = true
 
 [node name="SonidoQTECorrecto" type="AudioStreamPlayer" parent="." unique_id=1852938972]
-stream = ExtResource("10_xfidg")
+stream = ExtResource("23_1opi0")
 
 [node name="SonidoQTEFallido" type="AudioStreamPlayer" parent="." unique_id=927312067]
-stream = ExtResource("12_djoim")
+stream = ExtResource("24_p13vo")
 volume_db = -2.0
 
 [node name="SonidoTurbo" type="AudioStreamPlayer" parent="." unique_id=445871908]
-stream = ExtResource("13_ixi3t")
+stream = ExtResource("25_o5etn")
 
 [node name="SonidoTurboFinalizado" type="AudioStreamPlayer" parent="." unique_id=1966969120]
 stream = ExtResource("13_813tl")
 volume_db = 20.0
 
 [node name="SonidoCaida" type="AudioStreamPlayer" parent="." unique_id=1133649041]
-stream = ExtResource("15_e4mmn")
+stream = ExtResource("27_cq3xe")
 volume_db = 10.0
 
 [node name="MusicaFondo" type="AudioStreamPlayer" parent="." unique_id=1231323453]
-stream = ExtResource("16_66tbc")
+stream = ExtResource("28_5po78")
 autoplay = true
+
+[node name="SonidoQTEPerfecto" type="AudioStreamPlayer" parent="." unique_id=2065578509]
+stream = ExtResource("29_p13vo")
 
 [connection signal="equilibrio_agotado" from="." to="escenario/Toro/movimiento/Puntomontura/Jinete" method="caer"]
 [connection signal="equilibrio_cambiado" from="." to="HUB" method="_on_juego_equilibrio_cambiado"]

@@ -3,9 +3,10 @@
 [ext_resource type="Script" uid="uid://cmferrhmjbeim" path="res://Scripts/menu_principal.gd" id="1_gjr1r"]
 [ext_resource type="FontFile" uid="uid://da23ojgbm7fq6" path="res://Assets/final/WesternCowboy.ttf" id="1_q6tkn"]
 [ext_resource type="Texture2D" uid="uid://b68woopma31fm" path="res://Assets/final/fondomenuprincipal.png" id="2_x3ug5"]
-[ext_resource type="AudioStream" uid="uid://cooxsyek1wa3l" path="res://Audio/UI.mp3" id="4_36xfc"]
 [ext_resource type="Texture2D" uid="uid://ckg4a2rjtvmp6" path="res://Assets/final/BtnJugar.png" id="4_uqr5y"]
 [ext_resource type="Texture2D" uid="uid://bc1yycf4fecyt" path="res://Assets/final/Titulo.png" id="5_wgaa4"]
+[ext_resource type="AudioStream" uid="uid://dnn5t03ijmvby" path="res://Audio/UI.ogg" id="6_wnt5x"]
+[ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="7_wnt5x"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sg33y"]
 bg_color = Color(0.05490196, 0.18039216, 0.5058824, 1)
@@ -43,10 +44,10 @@ anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -151.0
-offset_top = -228.0
-offset_right = 138.0
-offset_bottom = -27.0
+offset_left = -131.0
+offset_top = -239.0
+offset_right = 158.0
+offset_bottom = -38.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_fonts/font = ExtResource("1_q6tkn")
@@ -58,13 +59,23 @@ expand_icon = true
 
 [node name="titulojuego" type="TextureRect" parent="." unique_id=1694227037]
 layout_mode = 0
-offset_left = 393.0
+offset_left = 365.0
 offset_top = 26.0
-offset_right = 889.0
+offset_right = 928.0
 offset_bottom = 213.0
 texture = ExtResource("5_wgaa4")
 expand_mode = 1
 
 [node name="MusicaMenu" type="AudioStreamPlayer" parent="." unique_id=929830226]
-stream = ExtResource("4_36xfc")
+stream = ExtResource("6_wnt5x")
 autoplay = true
+
+[node name="RecordLabel" type="Label" parent="." unique_id=1337482477]
+layout_mode = 0
+offset_left = 524.0
+offset_top = 213.0
+offset_right = 779.0
+offset_bottom = 245.0
+theme_override_fonts/font = ExtResource("7_wnt5x")
+theme_override_font_sizes/font_size = 20
+text = "MEJOR PUNTUACION: 0"

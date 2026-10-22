@@ -11,6 +11,8 @@ signal puntuacion_cambiada(puntos: int)
 signal tiempo_cambiado(segundos: int)
 signal turbo_cambiado(carga: float)
 
+
+# Referencias a los nodos principales.
 @onready var hud: CanvasLayer = $HUB
 @onready var toro: Node2D = $escenario/Toro
 @onready var movimiento_toro: Node2D = $escenario/Toro/movimiento
@@ -22,28 +24,37 @@ signal turbo_cambiado(carga: float)
 # Efecto visual del Turbo.
 @onready var efecto_turbo: ColorRect = $HUB/EfectoTurbo
 
-# Reproductores de sonidos.
-@onready var sonido_qte_correcto: AudioStreamPlayer = $SonidoQTECorrecto
-@onready var sonido_qte_fallido: AudioStreamPlayer = $SonidoQTEFallido
-@onready var sonido_turbo: AudioStreamPlayer = $SonidoTurbo
-@onready var sonido_turbo_finalizado: AudioStreamPlayer = $SonidoTurboFinalizado
-@onready var sonido_caida: AudioStreamPlayer = $SonidoCaida
 
+# Recursos de audio en formato OGG.
+const AUDIO_QTE_CORRECTO = preload("res://Audio/success.ogg")
+const AUDIO_QTE_PERFECTO = preload("res://Audio/perfect.ogg")
+const AUDIO_QTE_FALLIDO = preload("res://Audio/fallo.ogg")
+const AUDIO_TURBO = preload("res://Audio/turbo.ogg")
+const AUDIO_TURBO_FINALIZADO = preload("res://Audio/perdidaturbo.ogg")
+const AUDIO_CAIDA = preload("res://Audio/caidajinete.ogg")
+const AUDIO_MUSICA = preload("res://Audio/game.ogg")
+
+
+# Estado general de la partida.
 var equilibrio_actual: float = 100.0
 var partida_activa: bool = true
 var tiempo_entre_qte: float = 0.0
+
 
 # Sistema de furia.
 var tiempo_partida: float = 0.0
 var nivel_furia: int = 1
 var intervalo_qte: float = 1.8
 
+
 # Sistema de combos.
 var combo_actual: int = 0
+
 
 # Sistema de puntuación.
 var puntuacion_actual: int = 0
 var ultimo_segundo: int = 0
+
 
 # Sistema Turbo.
 var carga_turbo: float = 0.0
@@ -51,27 +62,41 @@ var turbo_activo: bool = false
 var tiempo_turbo_restante: float = 0.0
 var ultimo_segundo_turbo: int = -1
 
+
 # Control del destello visual.
 var animacion_efecto_turbo: Tween
 
-# Configuración de carga del Turbo.
+
+# Configuración definitiva del Turbo.
 const CARGA_TURBO_MAXIMA: float = 100.0
 const CARGA_POR_PERFECTO: float = 15.0
 const PENALIZACION_CARGA_TURBO: float = 30.0
 const DURACION_TURBO: float = 5.0
 
+
 # Penalización de equilibrio durante el Turbo.
 const PENALIZACION_FALLO_EN_TURBO: float = 30.0
+
 
 # Efectos del Turbo.
 const MULTIPLICADOR_PUNTOS_TURBO: int = 2
 const MULTIPLICADOR_FRECUENCIA_TURBO: float = 1.4
 
+
+# Puntuación.
 const PUNTOS_POR_SEGUNDO: int = 10
 const PUNTOS_POR_COMBO: int = 10
 
+
+# Niveles de furia.
 const NIVEL_FURIA_MAXIMO: int = 5
 const SEGUNDOS_POR_NIVEL: float = 10.0
+
+
+# Configuración de la música.
+const AUMENTO_MUSICA_POR_FURIA: float = 0.08
+const AUMENTO_MUSICA_TURBO: float = 0.20
+
 
 # Tiempo adicional para apreciar la caída.
 const ESPERA_DESPUES_CAIDA: float = 2.0
@@ -85,6 +110,9 @@ func _ready() -> void:
 	randomize()
 
 	equilibrio_actual = configuracion.equilibrio_inicial
+
+	# Detiene cualquier audio anterior antes de iniciar.
+	AudioManager.detener_todo()
 
 	# Prepara el efecto visual del Turbo.
 	efecto_turbo.visible = false
@@ -109,7 +137,11 @@ func _ready() -> void:
 	gestor_qte.qte_fallado.connect(_on_qte_fallado)
 	gestor_qte.progreso_machacar.connect(_on_progreso_machacar)
 
+	# Configura la dificultad inicial.
 	configurar_dificultad_furia()
+
+	# Inicia la música mediante AudioManager.
+	AudioManager.reproducir_musica(AUDIO_MUSICA)
 
 	# Muestra los valores iniciales.
 	equilibrio_cambiado.emit(equilibrio_actual)
@@ -170,6 +202,7 @@ func actualizar_furia(delta: float) -> void:
 
 	if nuevo_nivel != nivel_furia:
 		nivel_furia = nuevo_nivel
+
 		configurar_dificultad_furia()
 
 		nivel_furia_cambiado.emit(nivel_furia)
@@ -237,6 +270,23 @@ func configurar_dificultad_furia() -> void:
 			intervalo_qte = 0.8
 		5:
 			intervalo_qte = 0.6
+
+	# Ajusta la música al nivel de furia.
+	actualizar_musica()
+
+
+# Ajusta la música según la furia y el Turbo.
+func actualizar_musica() -> void:
+	var velocidad_musica: float = (
+		1.0
+		+ float(nivel_furia - 1) * AUMENTO_MUSICA_POR_FURIA
+	)
+
+	# Durante el Turbo la música se acelera.
+	if turbo_activo:
+		velocidad_musica += AUMENTO_MUSICA_TURBO
+
+	AudioManager.ajustar_velocidad_musica(velocidad_musica)
 
 
 # Selecciona los QTE disponibles según la furia.
@@ -326,13 +376,16 @@ func activar_turbo() -> void:
 	tiempo_turbo_restante = DURACION_TURBO
 	ultimo_segundo_turbo = -1
 
-	# Reproduce el sonido de activación del Turbo.
-	sonido_turbo.play()
+	# Acelera la música durante el Turbo.
+	actualizar_musica()
+
+	# Reproduce el sonido de activación.
+	AudioManager.reproducir_efecto(AUDIO_TURBO)
 
 	# Muestra el destello azul.
 	mostrar_efecto_turbo()
 
-	# Activa la reducción del tiempo de respuesta.
+	# Reduce el tiempo de respuesta de los QTE.
 	gestor_qte.configurar_turbo(true)
 
 	actualizar_contador_turbo()
@@ -344,18 +397,18 @@ func activar_turbo() -> void:
 	print("TIEMPO DE RESPUESTA QTE: -30%")
 
 
-# Muestra un destello azul breve al activar el Turbo.
+# Muestra un destello azul al activar el Turbo.
 func mostrar_efecto_turbo() -> void:
-	# Detiene una animación anterior si todavía existe.
+	# Detiene una animación anterior.
 	if animacion_efecto_turbo != null:
 		if animacion_efecto_turbo.is_running():
 			animacion_efecto_turbo.kill()
 
-	# Prepara el rectángulo para un nuevo destello.
+	# Prepara el rectángulo.
 	efecto_turbo.modulate.a = 0.0
 	efecto_turbo.visible = true
 
-	# Aparece rápidamente y después desaparece.
+	# Crea el destello.
 	animacion_efecto_turbo = create_tween()
 
 	animacion_efecto_turbo.tween_property(
@@ -377,7 +430,7 @@ func mostrar_efecto_turbo() -> void:
 	)
 
 
-# Oculta completamente el destello.
+# Oculta el destello.
 func ocultar_efecto_turbo() -> void:
 	efecto_turbo.visible = false
 	efecto_turbo.modulate.a = 0.0
@@ -405,8 +458,11 @@ func desactivar_turbo() -> void:
 	ultimo_segundo_turbo = -1
 	carga_turbo = 0.0
 
-	# Reproduce el sonido de finalización del Turbo.
-	sonido_turbo_finalizado.play()
+	# Recupera la velocidad musical correspondiente a la furia.
+	actualizar_musica()
+
+	# Reproduce el sonido de finalización.
+	AudioManager.reproducir_efecto(AUDIO_TURBO_FINALIZADO)
 
 	# Recupera el tiempo de respuesta normal.
 	gestor_qte.configurar_turbo(false)
@@ -442,8 +498,8 @@ func _on_progreso_machacar(
 func _on_qte_acertado() -> void:
 	qte_prompt.mostrar_resultado(true)
 
-	# Reproduce el sonido del acierto.
-	sonido_qte_correcto.play()
+	# Sonido de acierto normal.
+	AudioManager.reproducir_efecto(AUDIO_QTE_CORRECTO)
 
 	modificar_equilibrio(configuracion.recuperacion_qte)
 	aumentar_combo()
@@ -454,13 +510,13 @@ func _on_qte_perfecto() -> void:
 	# Muestra PERFECTO en dorado.
 	qte_prompt.mostrar_resultado(true, true)
 
-	# Reproduce el sonido del acierto perfecto.
-	sonido_qte_correcto.play()
+	# Sonido exclusivo de QTE perfecto.
+	AudioManager.reproducir_efecto(AUDIO_QTE_PERFECTO)
 
 	modificar_equilibrio(configuracion.recuperacion_perfecta)
 	aumentar_combo()
 
-	# Solo acumula carga cuando el Turbo está inactivo.
+	# Acumula 15 % por PERFECTO.
 	if not turbo_activo:
 		carga_turbo = clampf(
 			carga_turbo + CARGA_POR_PERFECTO,
@@ -479,9 +535,9 @@ func _on_qte_fallado() -> void:
 	qte_prompt.mostrar_resultado(false)
 
 	# Reproduce el sonido de fallo.
-	sonido_qte_fallido.play()
+	AudioManager.reproducir_efecto(AUDIO_QTE_FALLIDO)
 
-	# Aplica una penalización mayor durante el Turbo.
+	# Penalización normal o durante Turbo.
 	var penalizacion: float = configuracion.penalizacion_fallo
 
 	if turbo_activo:
@@ -490,7 +546,7 @@ func _on_qte_fallado() -> void:
 	modificar_equilibrio(-penalizacion)
 	reiniciar_combo()
 
-	# La carga solo disminuye cuando el Turbo está inactivo.
+	# Reduce la carga cuando Turbo está inactivo.
 	if not turbo_activo:
 		carga_turbo = clampf(
 			carga_turbo - PENALIZACION_CARGA_TURBO,
@@ -549,7 +605,7 @@ func modificar_equilibrio(cantidad: float) -> void:
 		terminar_partida()
 
 
-# Guarda el récord y reproduce la caída.
+# Guarda el récord, el tiempo final y reproduce la caída.
 func terminar_partida() -> void:
 	if not partida_activa:
 		return
@@ -559,28 +615,33 @@ func terminar_partida() -> void:
 	gestor_qte.detener()
 	qte_prompt.ocultar_qte()
 
-	Record.guardar_record(puntuacion_actual)
+	# Guarda los resultados.
+	GameState.guardar_record(puntuacion_actual)
+	GameState.guardar_tiempo_final(int(tiempo_partida))
 
 	print("Puntuación final: ", puntuacion_actual)
-	print("Récord actual: ", Record.puntuacion_record)
+	print("Récord actual: ", GameState.puntuacion_record)
+	print("Tiempo final: ", GameState.tiempo_final, " segundos")
 
 	equilibrio_agotado.emit()
 	hud.actualizar_equilibrio(0.0)
 
-	# Detiene el sonido de fallo para destacar la caída.
-	sonido_qte_fallido.stop()
+	# Detiene la música y los efectos anteriores.
+	AudioManager.detener_todo()
 
-	# Reproduce el sonido y la animación de caída.
-	sonido_caida.play()
+	# Reproduce la caída.
+	AudioManager.reproducir_efecto(AUDIO_CAIDA)
 	jinete.caer()
 
-	# Espera a que termine la animación del jinete.
+	# Espera a que termine la animación.
 	await jinete.caida_terminada
 
-	# Mantiene visible la caída durante 2 segundos más.
-	await get_tree().create_timer(ESPERA_DESPUES_CAIDA).timeout
+	# Mantiene visible la caída durante 2 segundos.
+	await get_tree().create_timer(
+		ESPERA_DESPUES_CAIDA
+	).timeout
 
-	# Abre la pantalla de fin de partida.
+	# Abre la pantalla Game Over.
 	get_tree().change_scene_to_file(
 		"res://Scenes/ui/fin_juego.tscn"
 	)

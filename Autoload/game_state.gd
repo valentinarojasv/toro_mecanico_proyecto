@@ -7,6 +7,9 @@ const RUTA_RECORD: String = "user://record.dat"
 var puntuacion_record: int = 0
 var puntuacion_final: int = 0
 
+# Tiempo sobrevivido durante la última partida.
+var tiempo_final: int = 0
+
 
 # Carga el récord al iniciar.
 func _ready() -> void:
@@ -51,3 +54,8 @@ func guardar_record(puntuacion: int) -> void:
 
 	puntuacion_record = puntuacion
 	print("Nuevo récord: ", puntuacion_record)
+
+
+# Guarda el tiempo sobrevivido durante la partida.
+func guardar_tiempo_final(segundos: int) -> void:
+	tiempo_final = maxi(segundos, 0)
