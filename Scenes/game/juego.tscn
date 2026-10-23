@@ -5,10 +5,13 @@
 [ext_resource type="Script" uid="uid://dyhkwa3akjq21" path="res://Resources/configuracion_equilibrio.gd" id="2_2qyif"]
 [ext_resource type="PackedScene" uid="uid://bgk6s1dswtnwr" path="res://Scenes/entidades/toro.tscn" id="2_wbnfm"]
 [ext_resource type="PackedScene" uid="uid://gq2jbugprda5" path="res://Scenes/ui/hub.tscn" id="3_wbnfm"]
+[ext_resource type="Texture2D" uid="uid://cvcaedd5tante" path="res://Assets/final/Base.png" id="4_cq3xe"]
 [ext_resource type="Script" uid="uid://bosycal0tsw2n" path="res://Resources/configuracion_toro.gd" id="5_xfidg"]
 [ext_resource type="Script" uid="uid://cfq4sakqk4nqw" path="res://Scripts/hub.gd" id="6_ho3tb"]
+[ext_resource type="Texture2D" uid="uid://bipofhmx4h8ju" path="res://Assets/final/Toro.png" id="6_o5etn"]
 [ext_resource type="PackedScene" uid="uid://c4ik6i2hj0uiu" path="res://Scenes/ui/qte_prompt.tscn" id="7_5cms2"]
 [ext_resource type="Script" uid="uid://dcwavokeniot4" path="res://Scripts/GestorQTE.gd" id="8_5cms2"]
+[ext_resource type="Texture2D" uid="uid://j65qgtlvwo5a" path="res://Assets/final/Jinete.png" id="8_5po78"]
 [ext_resource type="Texture2D" uid="uid://k2va1fv2y8b7" path="res://Assets/final/Botones_tactiles/letra A.png" id="9_6hfqe"]
 [ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="9_xfidg"]
 [ext_resource type="Texture2D" uid="uid://d0p3h7427f6kt" path="res://Assets/final/Botones_tactiles/letra D.png" id="10_20ejb"]
@@ -30,7 +33,7 @@
 [ext_resource type="AudioStream" uid="uid://dnn5t03ijmvby" path="res://Audio/UI.ogg" id="28_5po78"]
 [ext_resource type="AudioStream" uid="uid://c7g88oy06rlm2" path="res://Audio/Perfect.ogg" id="29_p13vo"]
 
-[sub_resource type="Resource" id="Resource_dpgbr"]
+[sub_resource type="Resource" id="Resource_cq3xe"]
 script = ExtResource("2_2qyif")
 metadata/_custom_type_script = "uid://dyhkwa3akjq21"
 
@@ -53,7 +56,7 @@ bg_color = Color(0.9529412, 0.105882354, 0.10980392, 1)
 
 [node name="Juego" type="Node2D" unique_id=1504673152]
 script = ExtResource("1_p2ibf")
-configuracion = SubResource("Resource_dpgbr")
+configuracion = SubResource("Resource_cq3xe")
 metadata/_edit_horizontal_guides_ = [0.0]
 
 [node name="fondo" type="Sprite2D" parent="." unique_id=2079894343]
@@ -68,20 +71,49 @@ texture = ExtResource("1_hm6jn")
 position = Vector2(640, 505)
 
 [node name="Polygon2D" type="Polygon2D" parent="escenario/Basemecanica" unique_id=1137622957]
+visible = false
 color = Color(0.47007585, 0.47007585, 0.47007585, 1)
 polygon = PackedVector2Array(-140, -20, 140, -20, 140, 20, -140, 20)
 
 [node name="Base" type="Label" parent="escenario/Basemecanica/Polygon2D" unique_id=190747761]
+visible = false
 offset_left = -16.0
 offset_top = -17.0
 offset_right = 40.0
 offset_bottom = 23.0
 text = "Base"
 
+[node name="BaseSprite" type="Sprite2D" parent="escenario/Basemecanica" unique_id=812015548]
+position = Vector2(9.536743e-06, -23.999985)
+scale = Vector2(0.18080612, 0.1575536)
+texture = ExtResource("4_cq3xe")
+
 [node name="Toro" parent="escenario" unique_id=1615739686 instance=ExtResource("2_wbnfm")]
 position = Vector2(640, 360)
 scale = Vector2(0.8, 0.8)
 configuracion = SubResource("Resource_ixi3t")
+
+[node name="cola" parent="escenario/Toro/movimiento/visual" parent_id_path=PackedInt32Array(1615739686, 1832840856) index="0" unique_id=1879337795]
+visible = false
+
+[node name="cuerpo" parent="escenario/Toro/movimiento/visual" parent_id_path=PackedInt32Array(1615739686, 1832840856) index="1" unique_id=1991882900]
+visible = false
+
+[node name="cabeza" parent="escenario/Toro/movimiento/visual" parent_id_path=PackedInt32Array(1615739686, 1832840856) index="2" unique_id=1257474545]
+visible = false
+
+[node name="ToroSprite" type="Sprite2D" parent="escenario/Toro/movimiento/visual" parent_id_path=PackedInt32Array(1615739686, 1832840856) index="3" unique_id=751669823]
+position = Vector2(70.00002, -18.75)
+scale = Vector2(0.41234946, 0.39778578)
+texture = ExtResource("6_o5etn")
+
+[node name="cuerpo" parent="escenario/Toro/movimiento/Puntomontura/Jinete/visual" parent_id_path=PackedInt32Array(1615739686, 2087859310, 1918334876) index="0" unique_id=1340514775]
+visible = false
+
+[node name="JineteSprite" type="Sprite2D" parent="escenario/Toro/movimiento/Puntomontura/Jinete/visual" parent_id_path=PackedInt32Array(1615739686, 2087859310, 1918334876) index="2" unique_id=128747740]
+position = Vector2(45, 85)
+scale = Vector2(0.27581787, 0.2621663)
+texture = ExtResource("8_5po78")
 
 [node name="HUB" parent="." unique_id=2035256680 instance=ExtResource("3_wbnfm")]
 script = ExtResource("6_ho3tb")
@@ -132,6 +164,26 @@ offset_top = 19.0
 offset_right = 637.0
 offset_bottom = 42.0
 
+[node name="EfectoAcierto" type="ColorRect" parent="HUB" unique_id=1557925117]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.19607843, 1, 0.39215687, 0.48235294)
+
+[node name="EfectoFallo" type="ColorRect" parent="HUB" unique_id=1040570821]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.93333334, 0, 0.101960786, 0.67058825)
+
 [node name="NivelFuria" type="Label" parent="HUB" unique_id=1925498009]
 offset_left = 658.0
 offset_top = 19.0
@@ -170,43 +222,43 @@ text = "TURBO NO DISPONIBLE"
 [node name="ControlesTactiles" type="Node2D" parent="HUB" unique_id=873026364]
 
 [node name="BotonIzquierda" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=159013670]
-position = Vector2(37, 392.00003)
-scale = Vector2(0.08144797, 0.0801012)
+position = Vector2(33, 400.00003)
+scale = Vector2(0.057315234, 0.062342018)
 texture_normal = ExtResource("9_6hfqe")
 action = "qte_izq"
 visibility_mode = 1
 
 [node name="BotonDerecha" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=758457140]
-position = Vector2(212, 392)
-scale = Vector2(0.08823529, 0.0817875)
+position = Vector2(189, 400)
+scale = Vector2(0.06636501, 0.06829679)
 texture_normal = ExtResource("10_20ejb")
 action = "qte_derecha"
 visibility_mode = 1
 
 [node name="BotonArriba" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=474996549]
-position = Vector2(127, 326)
-scale = Vector2(0.08144797, 0.08094434)
+position = Vector2(109, 346)
+scale = Vector2(0.060331825, 0.06655435)
 texture_normal = ExtResource("11_w102m")
 action = "qte_arriba"
 visibility_mode = 1
 
 [node name="BotonAbajo" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=2118087980]
-position = Vector2(127, 461)
-scale = Vector2(0.08144796, 0.080876164)
+position = Vector2(109.000015, 454)
+scale = Vector2(0.061085965, 0.062342033)
 texture_normal = ExtResource("12_2qyif")
 action = "qte_abajo"
 visibility_mode = 1
 
 [node name="BotonAccion" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=273867738]
-position = Vector2(893.00006, 470)
-scale = Vector2(0.08603418, 0.09277242)
+position = Vector2(277, 454)
+scale = Vector2(0.07837359, 0.07119742)
 texture_normal = ExtResource("13_w102m")
 action = "accion"
 visibility_mode = 1
 
 [node name="BotonTurbo" type="TouchScreenButton" parent="HUB/ControlesTactiles" unique_id=1558686094]
-position = Vector2(1043, 461)
-scale = Vector2(0.1108597, 0.08171864)
+position = Vector2(277, 345.99997)
+scale = Vector2(0.10030168, 0.06655434)
 texture_normal = ExtResource("14_2qyif")
 action = "activar_turbo"
 visibility_mode = 1
@@ -264,10 +316,10 @@ flat = true
 expand_icon = true
 
 [node name="BotonPausa" type="Button" parent="HUB" unique_id=1415721335]
-offset_left = 591.0
-offset_top = 632.0
-offset_right = 683.0
-offset_bottom = 720.0
+offset_left = 780.0
+offset_top = 11.0
+offset_right = 859.0
+offset_bottom = 69.0
 icon = ExtResource("21_1opi0")
 flat = true
 expand_icon = true
@@ -308,5 +360,6 @@ stream = ExtResource("29_p13vo")
 [connection signal="equilibrio_cambiado" from="." to="HUB" method="_on_juego_equilibrio_cambiado"]
 
 [editable path="escenario/Toro"]
+[editable path="escenario/Toro/movimiento/Puntomontura/Jinete"]
 [editable path="HUB"]
 [editable path="HUB/QTEPrompt"]

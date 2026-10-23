@@ -1,8 +1,9 @@
 extends Node2D
 
-# Configuración editable del equilibrio.
+# Recurso editable con los valores del sistema de equilibrio.
 @export var configuracion: ConfiguracionEquilibrio
 
+# Señales utilizadas para actualizar el HUD y comunicar eventos.
 signal equilibrio_cambiado(valor: float)
 signal equilibrio_agotado
 signal nivel_furia_cambiado(nivel: int)
@@ -10,7 +11,6 @@ signal combo_cambiado(combo: int)
 signal puntuacion_cambiada(puntos: int)
 signal tiempo_cambiado(segundos: int)
 signal turbo_cambiado(carga: float)
-
 
 # Referencias a los nodos principales.
 @onready var hud: CanvasLayer = $HUB
@@ -21,87 +21,104 @@ signal turbo_cambiado(carga: float)
 @onready var qte_prompt: Control = $HUB/QTEPrompt
 @onready var temporizador_qte: Timer = $GestorQTE/TemporizadorQTE
 
-# Efecto visual del Turbo.
-@onready var efecto_turbo: ColorRect = $HUB/EfectoTurbo
+# Reproductores de sonido.
+@onready var sonido_qte_correcto: AudioStreamPlayer = $SonidoQTECorrecto
+@onready var sonido_qte_fallido: AudioStreamPlayer = $SonidoQTEFallido
 
+# Rectángulos utilizados para los destellos visuales.
+@onready var efecto_acierto: ColorRect = $HUB/EfectoAcierto
+@onready var efecto_fallo: ColorRect = $HUB/EfectoFallo
 
-# Recursos de audio en formato OGG.
-const AUDIO_QTE_CORRECTO = preload("res://Audio/success.ogg")
-const AUDIO_QTE_PERFECTO = preload("res://Audio/perfect.ogg")
-const AUDIO_QTE_FALLIDO = preload("res://Audio/fallo.ogg")
-const AUDIO_TURBO = preload("res://Audio/turbo.ogg")
-const AUDIO_TURBO_FINALIZADO = preload("res://Audio/perdidaturbo.ogg")
-const AUDIO_CAIDA = preload("res://Audio/caidajinete.ogg")
-const AUDIO_MUSICA = preload("res://Audio/game.ogg")
+# Cámara del escenario. Se busca sin exigir una ruta específica.
+@onready var camara: Camera2D = buscar_camara()
 
-
-# Estado general de la partida.
+# Variables del sistema de equilibrio.
 var equilibrio_actual: float = 100.0
 var partida_activa: bool = true
 var tiempo_entre_qte: float = 0.0
 
-
-# Sistema de furia.
+# Variables de tiempo y dificultad.
 var tiempo_partida: float = 0.0
 var nivel_furia: int = 1
 var intervalo_qte: float = 1.8
 
-
-# Sistema de combos.
+# Variables de puntuación y combo.
 var combo_actual: int = 0
-
-
-# Sistema de puntuación.
 var puntuacion_actual: int = 0
 var ultimo_segundo: int = 0
 
-
-# Sistema Turbo.
+# Variables del sistema Turbo.
 var carga_turbo: float = 0.0
 var turbo_activo: bool = false
 var tiempo_turbo_restante: float = 0.0
 var ultimo_segundo_turbo: int = -1
 
+# Variables para las animaciones independientes del jinete.
+var tiempo_retorno_jinete: float = 0.0
+var animacion_jinete_temporal: bool = false
 
-# Control del destello visual.
-var animacion_efecto_turbo: Tween
+# Tweens utilizados para los efectos visuales.
+var tween_efecto_acierto: Tween
+var tween_efecto_fallo: Tween
+var tween_rebote: Tween
+var tween_camara: Tween
 
+# Posiciones originales de los elementos animados.
+var posicion_original_jinete: Vector2 = Vector2.ZERO
+var posicion_original_camara: Vector2 = Vector2.ZERO
 
-# Configuración definitiva del Turbo.
+# Configuración del sistema Turbo.
 const CARGA_TURBO_MAXIMA: float = 100.0
 const CARGA_POR_PERFECTO: float = 15.0
 const PENALIZACION_CARGA_TURBO: float = 30.0
 const DURACION_TURBO: float = 5.0
-
-
-# Penalización de equilibrio durante el Turbo.
 const PENALIZACION_FALLO_EN_TURBO: float = 30.0
 
-
-# Efectos del Turbo.
+# Multiplicadores del Turbo.
 const MULTIPLICADOR_PUNTOS_TURBO: int = 2
 const MULTIPLICADOR_FRECUENCIA_TURBO: float = 1.4
 
-
-# Puntuación.
+# Valores de puntuación.
 const PUNTOS_POR_SEGUNDO: int = 10
 const PUNTOS_POR_COMBO: int = 10
 
-
-# Niveles de furia.
+# Configuración de dificultad.
 const NIVEL_FURIA_MAXIMO: int = 5
 const SEGUNDOS_POR_NIVEL: float = 10.0
 
+# Duración de las inclinaciones del jinete.
+const DURACION_INCLINACION_JINETE: float = 0.35
 
-# Configuración de la música.
-const AUMENTO_MUSICA_POR_FURIA: float = 0.08
-const AUMENTO_MUSICA_TURBO: float = 0.20
+# Configuración de los destellos.
+const DURACION_DESTELLO: float = 0.25
+const INTENSIDAD_DESTELLO: float = 0.45
+
+# Configuración del rebote del jinete.
+const ALTURA_REBOTE: float = 12.0
+const DURACION_REBOTE: float = 0.20
+
+# Configuración de la sacudida de cámara.
+const INTENSIDAD_SACUDIDA: float = 10.0
+const DURACION_SACUDIDA: float = 0.30
+const INTERVALO_SACUDIDA: float = 0.04
 
 
-# Tiempo adicional para apreciar la caída.
-const ESPERA_DESPUES_CAIDA: float = 2.0
+# Busca una cámara dentro de la escena del juego.
+func buscar_camara() -> Camera2D:
+	var camaras: Array[Node] = find_children(
+		"*",
+		"Camera2D",
+		true,
+		false
+	)
+
+	if camaras.is_empty():
+		return null
+
+	return camaras[0] as Camera2D
 
 
+# Inicializa las variables, señales y efectos visuales.
 func _ready() -> void:
 	if configuracion == null:
 		push_error("Falta asignar la configuración del equilibrio.")
@@ -109,17 +126,27 @@ func _ready() -> void:
 
 	randomize()
 
+	# Obtiene el equilibrio inicial desde el Resource.
 	equilibrio_actual = configuracion.equilibrio_inicial
 
-	# Detiene cualquier audio anterior antes de iniciar.
-	AudioManager.detener_todo()
+	# Guarda las posiciones originales de los elementos.
+	posicion_original_jinete = jinete.position
 
-	# Prepara el efecto visual del Turbo.
-	efecto_turbo.visible = false
-	efecto_turbo.modulate.a = 0.0
-	efecto_turbo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if camara != null:
+		posicion_original_camara = camara.offset
 
-	# Conecta los indicadores con el HUD.
+	# Oculta los efectos al comenzar la partida.
+	efecto_acierto.visible = false
+	efecto_fallo.visible = false
+
+	efecto_acierto.modulate.a = 0.0
+	efecto_fallo.modulate.a = 0.0
+
+	# Evita que los destellos bloqueen los controles táctiles.
+	efecto_acierto.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	efecto_fallo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	# Conecta las señales con el HUD.
 	equilibrio_cambiado.connect(hud.actualizar_equilibrio)
 	nivel_furia_cambiado.connect(hud.actualizar_nivel_furia)
 	combo_cambiado.connect(hud.actualizar_combo)
@@ -127,10 +154,10 @@ func _ready() -> void:
 	tiempo_cambiado.connect(hud.actualizar_tiempo)
 	turbo_cambiado.connect(hud.actualizar_turbo)
 
-	# Conecta la furia con el movimiento del toro.
+	# Comunica el nivel de furia al toro.
 	nivel_furia_cambiado.connect(toro.actualizar_nivel_furia)
 
-	# Conecta las señales de los QTE.
+	# Conecta los eventos del gestor QTE.
 	gestor_qte.qte_iniciado.connect(_on_qte_iniciado)
 	gestor_qte.qte_acertado.connect(_on_qte_acertado)
 	gestor_qte.qte_perfecto.connect(_on_qte_perfecto)
@@ -140,10 +167,10 @@ func _ready() -> void:
 	# Configura la dificultad inicial.
 	configurar_dificultad_furia()
 
-	# Inicia la música mediante AudioManager.
-	AudioManager.reproducir_musica(AUDIO_MUSICA)
+	# Inicia al jinete en reposo.
+	jinete.reposo()
 
-	# Muestra los valores iniciales.
+	# Envía los valores iniciales al HUD.
 	equilibrio_cambiado.emit(equilibrio_actual)
 	nivel_furia_cambiado.emit(nivel_furia)
 	combo_cambiado.emit(combo_actual)
@@ -152,11 +179,15 @@ func _ready() -> void:
 	turbo_cambiado.emit(carga_turbo)
 
 
+# Actualiza las mecánicas principales del juego.
 func _process(delta: float) -> void:
 	if configuracion == null or not partida_activa:
 		return
 
-	# Actualiza el tiempo restante del Turbo.
+	# Actualiza el movimiento independiente del jinete.
+	actualizar_animacion_jinete(delta)
+
+	# Controla la duración del Turbo.
 	if turbo_activo:
 		tiempo_turbo_restante -= delta
 
@@ -165,11 +196,11 @@ func _process(delta: float) -> void:
 		else:
 			actualizar_contador_turbo()
 
-	# Actualiza el tiempo, la puntuación y la furia.
+	# Actualiza la dificultad y la puntuación.
 	actualizar_furia(delta)
 	actualizar_puntuacion_tiempo()
 
-	# El Turbo detiene la pérdida automática de equilibrio.
+	# Reduce el equilibrio cuando el Turbo no está activo.
 	if not turbo_activo:
 		modificar_equilibrio(
 			-configuracion.perdida_por_segundo * delta
@@ -178,20 +209,218 @@ func _process(delta: float) -> void:
 	if not partida_activa:
 		return
 
-	# Actualiza el indicador de tiempo del QTE.
+	# Actualiza el tiempo disponible del QTE.
 	if gestor_qte.qte_activo:
 		qte_prompt.actualizar_tiempo(
 			temporizador_qte.time_left,
 			temporizador_qte.wait_time
 		)
 	else:
+		# Controla el intervalo antes del siguiente QTE.
 		tiempo_entre_qte += delta
 
 		if tiempo_entre_qte >= obtener_intervalo_qte():
 			iniciar_qte()
 
 
-# Aumenta la furia cada 10 segundos.
+# Muestra un destello verde al acertar un QTE.
+func mostrar_efecto_acierto() -> void:
+	if tween_efecto_acierto != null:
+		if tween_efecto_acierto.is_running():
+			tween_efecto_acierto.kill()
+
+	# Activa el rectángulo verde.
+	efecto_acierto.visible = true
+	efecto_acierto.modulate.a = INTENSIDAD_DESTELLO
+
+	# Reduce progresivamente la transparencia.
+	tween_efecto_acierto = create_tween()
+
+	tween_efecto_acierto.tween_property(
+		efecto_acierto,
+		"modulate:a",
+		0.0,
+		DURACION_DESTELLO
+	)
+
+	# Oculta el rectángulo cuando termina el destello.
+	tween_efecto_acierto.tween_callback(
+		func() -> void:
+			efecto_acierto.visible = false
+	)
+
+
+# Muestra un destello rojo al fallar un QTE.
+func mostrar_efecto_fallo() -> void:
+	if tween_efecto_fallo != null:
+		if tween_efecto_fallo.is_running():
+			tween_efecto_fallo.kill()
+
+	# Activa el rectángulo rojo.
+	efecto_fallo.visible = true
+	efecto_fallo.modulate.a = INTENSIDAD_DESTELLO
+
+	# Reduce progresivamente la transparencia.
+	tween_efecto_fallo = create_tween()
+
+	tween_efecto_fallo.tween_property(
+		efecto_fallo,
+		"modulate:a",
+		0.0,
+		DURACION_DESTELLO
+	)
+
+	# Oculta el rectángulo al terminar.
+	tween_efecto_fallo.tween_callback(
+		func() -> void:
+			efecto_fallo.visible = false
+	)
+
+
+# Produce un pequeño rebote del jinete al acertar.
+func aplicar_rebote_jinete() -> void:
+	if not partida_activa:
+		return
+
+	# Detiene el rebote anterior para evitar acumulaciones.
+	if tween_rebote != null:
+		if tween_rebote.is_running():
+			tween_rebote.kill()
+
+	# Guarda la posición actual antes de iniciar el rebote.
+	var posicion_base: Vector2 = posicion_original_jinete
+
+	# Restablece la posición para evitar desplazamientos acumulados.
+	jinete.position = posicion_base
+
+	# Crea una animación de subida y bajada.
+	tween_rebote = create_tween()
+
+	tween_rebote.tween_property(
+		jinete,
+		"position:y",
+		posicion_base.y - ALTURA_REBOTE,
+		DURACION_REBOTE / 2.0
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+	tween_rebote.tween_property(
+		jinete,
+		"position:y",
+		posicion_base.y,
+		DURACION_REBOTE / 2.0
+	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+
+
+# Sacude brevemente la cámara cuando el jugador falla.
+func aplicar_sacudida_camara() -> void:
+	if camara == null:
+		return
+
+	# Detiene una sacudida anterior si todavía está activa.
+	if tween_camara != null:
+		if tween_camara.is_running():
+			tween_camara.kill()
+
+	# Devuelve la cámara a su posición original.
+	camara.offset = posicion_original_camara
+
+	# Crea una secuencia de pequeños desplazamientos.
+	tween_camara = create_tween()
+
+	var cantidad_movimientos: int = maxi(
+		int(DURACION_SACUDIDA / INTERVALO_SACUDIDA),
+		1
+	)
+
+	for i in range(cantidad_movimientos):
+		# La intensidad disminuye progresivamente.
+		var progreso: float = float(i) / float(cantidad_movimientos)
+		var intensidad_actual: float = (
+			INTENSIDAD_SACUDIDA * (1.0 - progreso)
+		)
+
+		var desplazamiento: Vector2 = Vector2(
+			randf_range(-intensidad_actual, intensidad_actual),
+			randf_range(-intensidad_actual, intensidad_actual)
+		)
+
+		tween_camara.tween_property(
+			camara,
+			"offset",
+			posicion_original_camara + desplazamiento,
+			INTERVALO_SACUDIDA
+		)
+
+	# Devuelve la cámara a su posición original.
+	tween_camara.tween_property(
+		camara,
+		"offset",
+		posicion_original_camara,
+		INTERVALO_SACUDIDA
+	)
+
+
+# Activa la inclinación izquierda del jinete.
+func animar_jinete_izquierda() -> void:
+	if not partida_activa:
+		return
+
+	jinete.inclinar_izquierda()
+
+	animacion_jinete_temporal = true
+	tiempo_retorno_jinete = DURACION_INCLINACION_JINETE
+
+
+# Activa la inclinación derecha del jinete.
+func animar_jinete_derecha() -> void:
+	if not partida_activa:
+		return
+
+	jinete.inclinar_derecha()
+
+	animacion_jinete_temporal = true
+	tiempo_retorno_jinete = DURACION_INCLINACION_JINETE
+
+
+# Devuelve al jinete a su animación de reposo.
+func animar_jinete_reposo() -> void:
+	if not partida_activa:
+		return
+
+	animacion_jinete_temporal = false
+	tiempo_retorno_jinete = 0.0
+
+	jinete.reposo()
+
+
+# Controla la duración de las inclinaciones del jinete.
+func actualizar_animacion_jinete(delta: float) -> void:
+	if not animacion_jinete_temporal:
+		return
+
+	tiempo_retorno_jinete -= delta
+
+	if tiempo_retorno_jinete <= 0.0:
+		animar_jinete_reposo()
+
+
+# Selecciona la animación del jinete según la dirección.
+func procesar_movimiento_jinete(accion: String) -> void:
+	match accion:
+		"qte_izq":
+			animar_jinete_izquierda()
+
+		"qte_derecha":
+			animar_jinete_derecha()
+
+		"qte_arriba":
+			animar_jinete_reposo()
+
+		"qte_abajo":
+			animar_jinete_reposo()
+
+
+# Incrementa el nivel de furia cada diez segundos.
 func actualizar_furia(delta: float) -> void:
 	tiempo_partida += delta
 
@@ -210,20 +439,33 @@ func actualizar_furia(delta: float) -> void:
 		print("Nivel de furia: ", nivel_furia)
 
 
-# Devuelve el multiplicador actual de puntos.
+# Configura el intervalo entre QTE según la furia.
+func configurar_dificultad_furia() -> void:
+	gestor_qte.configurar_tiempo_respuesta(nivel_furia)
+
+	match nivel_furia:
+		1:
+			intervalo_qte = 1.8
+
+		2:
+			intervalo_qte = 1.4
+
+		3:
+			intervalo_qte = 1.1
+
+		4:
+			intervalo_qte = 0.8
+
+		5:
+			intervalo_qte = 0.6
+
+
+# Devuelve el multiplicador de puntuación.
 func obtener_multiplicador_puntos() -> int:
 	if turbo_activo:
 		return MULTIPLICADOR_PUNTOS_TURBO
 
 	return 1
-
-
-# Calcula el intervalo entre QTE según el Turbo.
-func obtener_intervalo_qte() -> float:
-	if turbo_activo:
-		return intervalo_qte / MULTIPLICADOR_FRECUENCIA_TURBO
-
-	return intervalo_qte
 
 
 # Suma puntos por cada segundo sobrevivido.
@@ -250,46 +492,50 @@ func actualizar_puntuacion_tiempo() -> void:
 
 		print(
 			"Tiempo: ", segundos_actuales,
-			" s | Puntos ganados: +", puntos_ganados,
-			" | Puntuación: ", puntuacion_actual
+			" s | Puntos: ", puntuacion_actual
 		)
 
 
-# Configura la dificultad de cada nivel.
-func configurar_dificultad_furia() -> void:
-	gestor_qte.configurar_tiempo_respuesta(nivel_furia)
+# Aumenta el combo y concede puntos adicionales.
+func aumentar_combo() -> void:
+	combo_actual += 1
 
-	match nivel_furia:
-		1:
-			intervalo_qte = 1.8
-		2:
-			intervalo_qte = 1.4
-		3:
-			intervalo_qte = 1.1
-		4:
-			intervalo_qte = 0.8
-		5:
-			intervalo_qte = 0.6
+	combo_cambiado.emit(combo_actual)
 
-	# Ajusta la música al nivel de furia.
-	actualizar_musica()
-
-
-# Ajusta la música según la furia y el Turbo.
-func actualizar_musica() -> void:
-	var velocidad_musica: float = (
-		1.0
-		+ float(nivel_furia - 1) * AUMENTO_MUSICA_POR_FURIA
+	var bonificacion: int = (
+		combo_actual
+		* PUNTOS_POR_COMBO
+		* obtener_multiplicador_puntos()
 	)
 
-	# Durante el Turbo la música se acelera.
+	puntuacion_actual += bonificacion
+
+	puntuacion_cambiada.emit(puntuacion_actual)
+
+	print(
+		"Combo: ", combo_actual,
+		" | Bonificación: +", bonificacion
+	)
+
+
+# Reinicia el combo después de un fallo.
+func reiniciar_combo() -> void:
+	combo_actual = 0
+
+	combo_cambiado.emit(combo_actual)
+
+	print("Combo reiniciado")
+
+
+# Calcula el intervalo entre QTE.
+func obtener_intervalo_qte() -> float:
 	if turbo_activo:
-		velocidad_musica += AUMENTO_MUSICA_TURBO
+		return intervalo_qte / MULTIPLICADOR_FRECUENCIA_TURBO
 
-	AudioManager.ajustar_velocidad_musica(velocidad_musica)
+	return intervalo_qte
 
 
-# Selecciona los QTE disponibles según la furia.
+# Inicia un QTE aleatorio según el nivel de furia.
 func iniciar_qte() -> void:
 	tiempo_entre_qte = 0.0
 
@@ -298,10 +544,13 @@ func iniciar_qte() -> void:
 	match nivel_furia:
 		1:
 			tipo_maximo = 1
+
 		2:
 			tipo_maximo = 2
+
 		3:
 			tipo_maximo = 3
+
 		4, 5:
 			tipo_maximo = 4
 
@@ -310,22 +559,28 @@ func iniciar_qte() -> void:
 	match tipo_qte:
 		0:
 			gestor_qte.iniciar_simple()
+
 		1:
-			gestor_qte.iniciar_direccion(movimiento_toro.rotation)
+			gestor_qte.iniciar_direccion(
+				movimiento_toro.rotation
+			)
+
 		2:
 			gestor_qte.iniciar_mantener()
+
 		3:
 			gestor_qte.iniciar_machacar()
+
 		4:
 			gestor_qte.iniciar_secuencia()
 
 
-# Recibe las teclas del jugador.
+# Procesa las entradas del teclado.
 func _unhandled_input(event: InputEvent) -> void:
 	if not partida_activa:
 		return
 
-	# Activa el Turbo con Shift cuando está cargado.
+	# Activa el Turbo mediante Shift.
 	if event.is_action_pressed("activar_turbo") and not event.is_echo():
 		activar_turbo()
 		return
@@ -333,21 +588,25 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not gestor_qte.qte_activo:
 		return
 
-	# QTE de mantener ESPACIO.
+	# Gestiona el QTE de mantener presionado.
 	if gestor_qte.qte_mantener:
 		if event.is_action_pressed("accion") and not event.is_echo():
 			gestor_qte.comenzar_mantener()
+
 		elif event.is_action_released("accion"):
 			gestor_qte.soltar_mantener()
+
 		return
 
-	# QTE de pulsaciones repetidas.
+	# Gestiona el QTE de pulsaciones repetidas.
 	if gestor_qte.qte_machacar:
 		if event.is_action_pressed("accion") and not event.is_echo():
 			gestor_qte.registrar_pulsacion()
+
 		return
 
-	# QTE direccionales y de secuencia.
+	# Procesa las acciones direccionales.
+	# Cada acción reconoce WASD y las flechas.
 	var acciones: Array[String] = [
 		"qte_izq",
 		"qte_derecha",
@@ -357,11 +616,131 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	for accion in acciones:
 		if event.is_action_pressed(accion) and not event.is_echo():
+			procesar_movimiento_jinete(accion)
+
 			if gestor_qte.qte_secuencia:
 				gestor_qte.comprobar_secuencia(accion)
 			else:
 				gestor_qte.comprobar_respuesta(accion)
+
 			return
+
+
+# Muestra las instrucciones del QTE.
+func _on_qte_iniciado(
+	_accion: String,
+	tecla: String,
+	es_direccion: bool
+) -> void:
+	qte_prompt.mostrar_qte(tecla, es_direccion)
+
+
+# Actualiza el progreso del QTE de pulsaciones repetidas.
+func _on_progreso_machacar(
+	pulsaciones: int,
+	necesarias: int
+) -> void:
+	qte_prompt.actualizar_progreso(
+		pulsaciones,
+		necesarias
+	)
+
+
+# Procesa un QTE acertado.
+func _on_qte_acertado() -> void:
+	qte_prompt.mostrar_resultado(true)
+
+	sonido_qte_correcto.play()
+
+	# Muestra el destello verde.
+	mostrar_efecto_acierto()
+
+	# Produce el pequeño rebote del jinete.
+	aplicar_rebote_jinete()
+
+	# Recupera equilibrio y aumenta el combo.
+	modificar_equilibrio(
+		configuracion.recuperacion_qte
+	)
+
+	aumentar_combo()
+
+
+# Procesa un QTE PERFECTO.
+func _on_qte_perfecto() -> void:
+	qte_prompt.mostrar_resultado(true, true)
+
+	sonido_qte_correcto.play()
+
+	# Muestra el destello verde.
+	mostrar_efecto_acierto()
+
+	# Produce el pequeño rebote del jinete.
+	aplicar_rebote_jinete()
+
+	# Recupera equilibrio y aumenta el combo.
+	modificar_equilibrio(
+		configuracion.recuperacion_perfecta
+	)
+
+	aumentar_combo()
+
+	# Cada PERFECTO carga un 15 % del Turbo.
+	if not turbo_activo:
+		carga_turbo = clampf(
+			carga_turbo + CARGA_POR_PERFECTO,
+			0.0,
+			CARGA_TURBO_MAXIMA
+		)
+
+		turbo_cambiado.emit(carga_turbo)
+
+	print(
+		"QTE PERFECTO | Turbo: ",
+		carga_turbo,
+		"%"
+	)
+
+
+# Procesa un QTE fallado.
+func _on_qte_fallado() -> void:
+	qte_prompt.mostrar_resultado(false)
+
+	sonido_qte_fallido.play()
+
+	# Muestra el destello rojo.
+	mostrar_efecto_fallo()
+
+	# Sacude la cámara brevemente.
+	aplicar_sacudida_camara()
+
+	# Determina la penalización de equilibrio.
+	var penalizacion: float = (
+		configuracion.penalizacion_fallo
+	)
+
+	if turbo_activo:
+		penalizacion = PENALIZACION_FALLO_EN_TURBO
+
+	# Reduce el equilibrio y reinicia el combo.
+	modificar_equilibrio(-penalizacion)
+
+	reiniciar_combo()
+
+	# Reduce la carga del Turbo cuando no está activo.
+	if not turbo_activo:
+		carga_turbo = clampf(
+			carga_turbo - PENALIZACION_CARGA_TURBO,
+			0.0,
+			CARGA_TURBO_MAXIMA
+		)
+
+		turbo_cambiado.emit(carga_turbo)
+
+	print(
+		"QTE FALLADO | Equilibrio: -",
+		penalizacion
+	)
 
 
 # Activa el Turbo cuando la barra está completa.
@@ -376,79 +755,33 @@ func activar_turbo() -> void:
 	tiempo_turbo_restante = DURACION_TURBO
 	ultimo_segundo_turbo = -1
 
-	# Acelera la música durante el Turbo.
-	actualizar_musica()
-
-	# Reproduce el sonido de activación.
-	AudioManager.reproducir_efecto(AUDIO_TURBO)
-
-	# Muestra el destello azul.
-	mostrar_efecto_turbo()
-
-	# Reduce el tiempo de respuesta de los QTE.
+	# Aplica la reducción del tiempo de respuesta.
 	gestor_qte.configurar_turbo(true)
 
+	# Muestra el contador del Turbo.
 	actualizar_contador_turbo()
 
-	print("TURBO ACTIVADO: 5 segundos")
-	print("MULTIPLICADOR DE PUNTOS: x2")
-	print("PÉRDIDA AUTOMÁTICA DE EQUILIBRIO: DETENIDA")
-	print("FRECUENCIA DE QTE: +40%")
-	print("TIEMPO DE RESPUESTA QTE: -30%")
+	print("TURBO ACTIVADO")
 
 
-# Muestra un destello azul al activar el Turbo.
-func mostrar_efecto_turbo() -> void:
-	# Detiene una animación anterior.
-	if animacion_efecto_turbo != null:
-		if animacion_efecto_turbo.is_running():
-			animacion_efecto_turbo.kill()
-
-	# Prepara el rectángulo.
-	efecto_turbo.modulate.a = 0.0
-	efecto_turbo.visible = true
-
-	# Crea el destello.
-	animacion_efecto_turbo = create_tween()
-
-	animacion_efecto_turbo.tween_property(
-		efecto_turbo,
-		"modulate:a",
-		1.0,
-		0.12
-	)
-
-	animacion_efecto_turbo.tween_property(
-		efecto_turbo,
-		"modulate:a",
-		0.0,
-		0.35
-	)
-
-	animacion_efecto_turbo.tween_callback(
-		ocultar_efecto_turbo
-	)
-
-
-# Oculta el destello.
-func ocultar_efecto_turbo() -> void:
-	efecto_turbo.visible = false
-	efecto_turbo.modulate.a = 0.0
-
-
-# Actualiza la cuenta regresiva del Turbo.
+# Actualiza los segundos restantes del Turbo.
 func actualizar_contador_turbo() -> void:
 	if not turbo_activo:
 		return
 
-	var segundos_visibles: int = ceili(tiempo_turbo_restante)
+	var segundos_visibles: int = ceili(
+		tiempo_turbo_restante
+	)
 
 	if segundos_visibles != ultimo_segundo_turbo:
 		ultimo_segundo_turbo = segundos_visibles
-		hud.mostrar_turbo_activo(segundos_visibles)
+
+		hud.mostrar_turbo_activo(
+			segundos_visibles
+		)
 
 
-# Finaliza el Turbo y reinicia su carga.
+# Desactiva el Turbo y restablece los valores normales.
 func desactivar_turbo() -> void:
 	if not turbo_activo:
 		return
@@ -456,142 +789,21 @@ func desactivar_turbo() -> void:
 	turbo_activo = false
 	tiempo_turbo_restante = 0.0
 	ultimo_segundo_turbo = -1
+
+	# Vacía la barra de Turbo.
 	carga_turbo = 0.0
 
-	# Recupera la velocidad musical correspondiente a la furia.
-	actualizar_musica()
-
-	# Reproduce el sonido de finalización.
-	AudioManager.reproducir_efecto(AUDIO_TURBO_FINALIZADO)
-
-	# Recupera el tiempo de respuesta normal.
+	# Restaura los tiempos normales de respuesta.
 	gestor_qte.configurar_turbo(false)
 
 	turbo_cambiado.emit(carga_turbo)
+
 	hud.mostrar_turbo_finalizado()
 
-	print("TURBO FINALIZADO. Carga: 0%")
-	print("MULTIPLICADOR DE PUNTOS: x1")
-	print("PÉRDIDA AUTOMÁTICA DE EQUILIBRIO: REACTIVADA")
-	print("FRECUENCIA DE QTE: NORMAL")
-	print("TIEMPO DE RESPUESTA QTE: NORMAL")
+	print("TURBO FINALIZADO")
 
 
-# Muestra las instrucciones del QTE.
-func _on_qte_iniciado(
-	_accion: String, tecla: String, es_direccion: bool
-) -> void:
-	qte_prompt.mostrar_qte(tecla, es_direccion)
-
-
-# Actualiza el progreso de las pulsaciones.
-func _on_progreso_machacar(
-	pulsaciones: int, necesarias: int
-) -> void:
-	qte_prompt.actualizar_progreso(
-		pulsaciones,
-		necesarias
-	)
-
-
-# Recupera equilibrio al acertar normalmente.
-func _on_qte_acertado() -> void:
-	qte_prompt.mostrar_resultado(true)
-
-	# Sonido de acierto normal.
-	AudioManager.reproducir_efecto(AUDIO_QTE_CORRECTO)
-
-	modificar_equilibrio(configuracion.recuperacion_qte)
-	aumentar_combo()
-
-
-# Recupera equilibrio y carga Turbo por un QTE perfecto.
-func _on_qte_perfecto() -> void:
-	# Muestra PERFECTO en dorado.
-	qte_prompt.mostrar_resultado(true, true)
-
-	# Sonido exclusivo de QTE perfecto.
-	AudioManager.reproducir_efecto(AUDIO_QTE_PERFECTO)
-
-	modificar_equilibrio(configuracion.recuperacion_perfecta)
-	aumentar_combo()
-
-	# Acumula 15 % por PERFECTO.
-	if not turbo_activo:
-		carga_turbo = clampf(
-			carga_turbo + CARGA_POR_PERFECTO,
-			0.0,
-			CARGA_TURBO_MAXIMA
-		)
-
-		turbo_cambiado.emit(carga_turbo)
-
-	print("QTE PERFECTO: +", configuracion.recuperacion_perfecta)
-	print("Carga Turbo: ", carga_turbo, "%")
-
-
-# Pierde equilibrio y carga Turbo al fallar.
-func _on_qte_fallado() -> void:
-	qte_prompt.mostrar_resultado(false)
-
-	# Reproduce el sonido de fallo.
-	AudioManager.reproducir_efecto(AUDIO_QTE_FALLIDO)
-
-	# Penalización normal o durante Turbo.
-	var penalizacion: float = configuracion.penalizacion_fallo
-
-	if turbo_activo:
-		penalizacion = PENALIZACION_FALLO_EN_TURBO
-
-	modificar_equilibrio(-penalizacion)
-	reiniciar_combo()
-
-	# Reduce la carga cuando Turbo está inactivo.
-	if not turbo_activo:
-		carga_turbo = clampf(
-			carga_turbo - PENALIZACION_CARGA_TURBO,
-			0.0,
-			CARGA_TURBO_MAXIMA
-		)
-
-		turbo_cambiado.emit(carga_turbo)
-
-	print(
-		"QTE FALLADO. Equilibrio: -", penalizacion,
-		" | Carga Turbo: ", carga_turbo, "%"
-	)
-
-
-# Aumenta el combo y otorga puntos adicionales.
-func aumentar_combo() -> void:
-	combo_actual += 1
-	combo_cambiado.emit(combo_actual)
-
-	var bonificacion: int = (
-		combo_actual
-		* PUNTOS_POR_COMBO
-		* obtener_multiplicador_puntos()
-	)
-
-	puntuacion_actual += bonificacion
-	puntuacion_cambiada.emit(puntuacion_actual)
-
-	print(
-		"Combo: ", combo_actual,
-		" | Bonificación: +", bonificacion,
-		" | Puntuación: ", puntuacion_actual
-	)
-
-
-# Reinicia el combo cuando se falla.
-func reiniciar_combo() -> void:
-	combo_actual = 0
-	combo_cambiado.emit(combo_actual)
-
-	print("Combo reiniciado: ", combo_actual)
-
-
-# Actualiza el equilibrio y notifica al HUD.
+# Modifica el equilibrio y comprueba si termina la partida.
 func modificar_equilibrio(cantidad: float) -> void:
 	equilibrio_actual = clampf(
 		equilibrio_actual + cantidad,
@@ -599,49 +811,75 @@ func modificar_equilibrio(cantidad: float) -> void:
 		configuracion.equilibrio_maximo
 	)
 
-	equilibrio_cambiado.emit(equilibrio_actual)
+	equilibrio_cambiado.emit(
+		equilibrio_actual
+	)
 
 	if equilibrio_actual <= 0.0 and partida_activa:
 		terminar_partida()
 
 
-# Guarda el récord, el tiempo final y reproduce la caída.
+# Finaliza la partida y reproduce la caída del jinete.
 func terminar_partida() -> void:
 	if not partida_activa:
 		return
 
 	partida_activa = false
 
+	# Detiene los QTE y oculta sus indicaciones.
 	gestor_qte.detener()
 	qte_prompt.ocultar_qte()
 
-	# Guarda los resultados.
-	GameState.guardar_record(puntuacion_actual)
-	GameState.guardar_tiempo_final(int(tiempo_partida))
+	# Detiene las animaciones temporales del jinete.
+	animacion_jinete_temporal = false
+	tiempo_retorno_jinete = 0.0
 
-	print("Puntuación final: ", puntuacion_actual)
-	print("Récord actual: ", GameState.puntuacion_record)
-	print("Tiempo final: ", GameState.tiempo_final, " segundos")
+	# Detiene el rebote para no interferir con la caída.
+	if tween_rebote != null:
+		if tween_rebote.is_running():
+			tween_rebote.kill()
+
+	jinete.position = posicion_original_jinete
+
+	# Detiene la sacudida y restablece la cámara.
+	if camara != null:
+		if tween_camara != null:
+			if tween_camara.is_running():
+				tween_camara.kill()
+
+		camara.offset = posicion_original_camara
+
+	# Guarda la puntuación y actualiza el récord.
+	GameState.guardar_record(
+		puntuacion_actual
+	)
+
+	# Guarda el tiempo sobrevivido.
+	GameState.guardar_tiempo_final(
+		int(tiempo_partida)
+	)
+
+	print(
+		"Puntuación final: ",
+		puntuacion_actual
+	)
+
+	print(
+		"Récord actual: ",
+		GameState.puntuacion_record
+	)
 
 	equilibrio_agotado.emit()
+
 	hud.actualizar_equilibrio(0.0)
 
-	# Detiene la música y los efectos anteriores.
-	AudioManager.detener_todo()
-
-	# Reproduce la caída.
-	AudioManager.reproducir_efecto(AUDIO_CAIDA)
+	# Reproduce la animación de caída.
 	jinete.caer()
 
-	# Espera a que termine la animación.
+	# Espera a que termine la caída.
 	await jinete.caida_terminada
 
-	# Mantiene visible la caída durante 2 segundos.
-	await get_tree().create_timer(
-		ESPERA_DESPUES_CAIDA
-	).timeout
-
-	# Abre la pantalla Game Over.
+	# Cambia a la pantalla Game Over.
 	get_tree().change_scene_to_file(
 		"res://Scenes/ui/fin_juego.tscn"
 	)
