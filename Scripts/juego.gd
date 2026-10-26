@@ -17,6 +17,7 @@ signal turbo_cambiado(carga: float)
 @onready var toro: Node2D = $escenario/Toro
 @onready var movimiento_toro: Node2D = $escenario/Toro/movimiento
 @onready var jinete: Node2D = $escenario/Toro/movimiento/Puntomontura/Jinete
+@onready var visual_jinete: Node2D = $escenario/Toro/movimiento/Puntomontura/Jinete/visual
 @onready var gestor_qte: Node = $GestorQTE
 @onready var qte_prompt: Control = $HUB/QTEPrompt
 @onready var temporizador_qte: Timer = $GestorQTE/TemporizadorQTE
@@ -29,7 +30,7 @@ signal turbo_cambiado(carga: float)
 @onready var efecto_acierto: ColorRect = $HUB/EfectoAcierto
 @onready var efecto_fallo: ColorRect = $HUB/EfectoFallo
 
-# Cámara del escenario. Se busca sin exigir una ruta específica.
+# Cámara del escenario.
 @onready var camara: Camera2D = buscar_camara()
 
 # Variables del sistema de equilibrio.
@@ -53,9 +54,16 @@ var turbo_activo: bool = false
 var tiempo_turbo_restante: float = 0.0
 var ultimo_segundo_turbo: int = -1
 
-# Variables para las animaciones independientes del jinete.
+# Variables para las animaciones del jinete.
 var tiempo_retorno_jinete: float = 0.0
 var animacion_jinete_temporal: bool = false
+
+# Control de la inclinación previa al aviso de compensación.
+var qte_direccion_activo: bool = false
+var esperando_aviso_compensacion: bool = false
+
+var rotacion_original_jinete: float = 0.0
+var rotacion_original_visual: float = 0.0
 
 # Tweens utilizados para los efectos visuales.
 var tween_efecto_acierto: Tween
@@ -63,7 +71,7 @@ var tween_efecto_fallo: Tween
 var tween_rebote: Tween
 var tween_camara: Tween
 
-# Posiciones originales de los elementos animados.
+# Posiciones originales.
 var posicion_original_jinete: Vector2 = Vector2.ZERO
 var posicion_original_camara: Vector2 = Vector2.ZERO
 
@@ -103,7 +111,7 @@ const DURACION_SACUDIDA: float = 0.30
 const INTERVALO_SACUDIDA: float = 0.04
 
 
-# Busca una cámara dentro de la escena del juego.
+# Busca una cámara dentro de la escena.
 func buscar_camara() -> Camera2D:
 	var camaras: Array[Node] = find_children(
 		"*",
@@ -118,7 +126,7 @@ func buscar_camara() -> Camera2D:
 	return camaras[0] as Camera2D
 
 
-# Inicializa las variables, señales y efectos visuales.
+# Inicializa las variables, señales y efectos.
 func _ready() -> void:
 	if configuracion == null:
 		push_error("Falta asignar la configuración del equilibrio.")
@@ -126,27 +134,25 @@ func _ready() -> void:
 
 	randomize()
 
-	# Obtiene el equilibrio inicial desde el Resource.
 	equilibrio_actual = configuracion.equilibrio_inicial
 
-	# Guarda las posiciones originales de los elementos.
 	posicion_original_jinete = jinete.position
+	rotacion_original_jinete = jinete.rotation
+	rotacion_original_visual = visual_jinete.rotation
 
 	if camara != null:
 		posicion_original_camara = camara.offset
 
-	# Oculta los efectos al comenzar la partida.
 	efecto_acierto.visible = false
 	efecto_fallo.visible = false
 
 	efecto_acierto.modulate.a = 0.0
 	efecto_fallo.modulate.a = 0.0
 
-	# Evita que los destellos bloqueen los controles táctiles.
 	efecto_acierto.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	efecto_fallo.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Conecta las señales con el HUD.
+	# Conecta las señales del HUD.
 	equilibrio_cambiado.connect(hud.actualizar_equilibrio)
 	nivel_furia_cambiado.connect(hud.actualizar_nivel_furia)
 	combo_cambiado.connect(hud.actualizar_combo)
@@ -154,23 +160,21 @@ func _ready() -> void:
 	tiempo_cambiado.connect(hud.actualizar_tiempo)
 	turbo_cambiado.connect(hud.actualizar_turbo)
 
-	# Comunica el nivel de furia al toro.
+	# Comunica la furia al toro.
 	nivel_furia_cambiado.connect(toro.actualizar_nivel_furia)
 
-	# Conecta los eventos del gestor QTE.
+	# Conecta los eventos QTE.
 	gestor_qte.qte_iniciado.connect(_on_qte_iniciado)
 	gestor_qte.qte_acertado.connect(_on_qte_acertado)
 	gestor_qte.qte_perfecto.connect(_on_qte_perfecto)
 	gestor_qte.qte_fallado.connect(_on_qte_fallado)
 	gestor_qte.progreso_machacar.connect(_on_progreso_machacar)
 
-	# Configura la dificultad inicial.
 	configurar_dificultad_furia()
 
-	# Inicia al jinete en reposo.
+	# El jinete comienza en reposo.
 	jinete.reposo()
 
-	# Envía los valores iniciales al HUD.
 	equilibrio_cambiado.emit(equilibrio_actual)
 	nivel_furia_cambiado.emit(nivel_furia)
 	combo_cambiado.emit(combo_actual)
@@ -179,15 +183,14 @@ func _ready() -> void:
 	turbo_cambiado.emit(carga_turbo)
 
 
-# Actualiza las mecánicas principales del juego.
+# Actualiza las mecánicas principales.
 func _process(delta: float) -> void:
 	if configuracion == null or not partida_activa:
 		return
 
-	# Actualiza el movimiento independiente del jinete.
+	# No genera inclinaciones automáticas.
 	actualizar_animacion_jinete(delta)
 
-	# Controla la duración del Turbo.
 	if turbo_activo:
 		tiempo_turbo_restante -= delta
 
@@ -196,11 +199,9 @@ func _process(delta: float) -> void:
 		else:
 			actualizar_contador_turbo()
 
-	# Actualiza la dificultad y la puntuación.
 	actualizar_furia(delta)
 	actualizar_puntuacion_tiempo()
 
-	# Reduce el equilibrio cuando el Turbo no está activo.
 	if not turbo_activo:
 		modificar_equilibrio(
 			-configuracion.perdida_por_segundo * delta
@@ -209,31 +210,30 @@ func _process(delta: float) -> void:
 	if not partida_activa:
 		return
 
-	# Actualiza el tiempo disponible del QTE.
 	if gestor_qte.qte_activo:
-		qte_prompt.actualizar_tiempo(
-			temporizador_qte.time_left,
-			temporizador_qte.wait_time
-		)
+		# Durante la inclinación previa todavía no se muestra
+		# la barra de respuesta.
+		if not esperando_aviso_compensacion:
+			qte_prompt.actualizar_tiempo(
+				temporizador_qte.time_left,
+				temporizador_qte.wait_time
+			)
 	else:
-		# Controla el intervalo antes del siguiente QTE.
 		tiempo_entre_qte += delta
 
 		if tiempo_entre_qte >= obtener_intervalo_qte():
 			iniciar_qte()
 
 
-# Muestra un destello verde al acertar un QTE.
+# Muestra el destello de acierto.
 func mostrar_efecto_acierto() -> void:
 	if tween_efecto_acierto != null:
 		if tween_efecto_acierto.is_running():
 			tween_efecto_acierto.kill()
 
-	# Activa el rectángulo verde.
 	efecto_acierto.visible = true
 	efecto_acierto.modulate.a = INTENSIDAD_DESTELLO
 
-	# Reduce progresivamente la transparencia.
 	tween_efecto_acierto = create_tween()
 
 	tween_efecto_acierto.tween_property(
@@ -243,24 +243,21 @@ func mostrar_efecto_acierto() -> void:
 		DURACION_DESTELLO
 	)
 
-	# Oculta el rectángulo cuando termina el destello.
 	tween_efecto_acierto.tween_callback(
 		func() -> void:
 			efecto_acierto.visible = false
 	)
 
 
-# Muestra un destello rojo al fallar un QTE.
+# Muestra el destello de fallo.
 func mostrar_efecto_fallo() -> void:
 	if tween_efecto_fallo != null:
 		if tween_efecto_fallo.is_running():
 			tween_efecto_fallo.kill()
 
-	# Activa el rectángulo rojo.
 	efecto_fallo.visible = true
 	efecto_fallo.modulate.a = INTENSIDAD_DESTELLO
 
-	# Reduce progresivamente la transparencia.
 	tween_efecto_fallo = create_tween()
 
 	tween_efecto_fallo.tween_property(
@@ -270,30 +267,25 @@ func mostrar_efecto_fallo() -> void:
 		DURACION_DESTELLO
 	)
 
-	# Oculta el rectángulo al terminar.
 	tween_efecto_fallo.tween_callback(
 		func() -> void:
 			efecto_fallo.visible = false
 	)
 
 
-# Produce un pequeño rebote del jinete al acertar.
+# Produce un pequeño rebote al acertar.
 func aplicar_rebote_jinete() -> void:
 	if not partida_activa:
 		return
 
-	# Detiene el rebote anterior para evitar acumulaciones.
 	if tween_rebote != null:
 		if tween_rebote.is_running():
 			tween_rebote.kill()
 
-	# Guarda la posición actual antes de iniciar el rebote.
 	var posicion_base: Vector2 = posicion_original_jinete
 
-	# Restablece la posición para evitar desplazamientos acumulados.
 	jinete.position = posicion_base
 
-	# Crea una animación de subida y bajada.
 	tween_rebote = create_tween()
 
 	tween_rebote.tween_property(
@@ -311,20 +303,17 @@ func aplicar_rebote_jinete() -> void:
 	).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
 
-# Sacude brevemente la cámara cuando el jugador falla.
+# Sacude brevemente la cámara al fallar.
 func aplicar_sacudida_camara() -> void:
 	if camara == null:
 		return
 
-	# Detiene una sacudida anterior si todavía está activa.
 	if tween_camara != null:
 		if tween_camara.is_running():
 			tween_camara.kill()
 
-	# Devuelve la cámara a su posición original.
 	camara.offset = posicion_original_camara
 
-	# Crea una secuencia de pequeños desplazamientos.
 	tween_camara = create_tween()
 
 	var cantidad_movimientos: int = maxi(
@@ -333,8 +322,8 @@ func aplicar_sacudida_camara() -> void:
 	)
 
 	for i in range(cantidad_movimientos):
-		# La intensidad disminuye progresivamente.
 		var progreso: float = float(i) / float(cantidad_movimientos)
+
 		var intensidad_actual: float = (
 			INTENSIDAD_SACUDIDA * (1.0 - progreso)
 		)
@@ -351,7 +340,6 @@ func aplicar_sacudida_camara() -> void:
 			INTERVALO_SACUDIDA
 		)
 
-	# Devuelve la cámara a su posición original.
 	tween_camara.tween_property(
 		camara,
 		"offset",
@@ -360,64 +348,37 @@ func aplicar_sacudida_camara() -> void:
 	)
 
 
-# Activa la inclinación izquierda del jinete.
+# Inclina al jinete a la izquierda al comenzar un QTE de compensación.
 func animar_jinete_izquierda() -> void:
 	if not partida_activa:
 		return
 
 	jinete.inclinar_izquierda()
 
-	animacion_jinete_temporal = true
-	tiempo_retorno_jinete = DURACION_INCLINACION_JINETE
 
-
-# Activa la inclinación derecha del jinete.
+# Inclina al jinete a la derecha al comenzar un QTE de compensación.
 func animar_jinete_derecha() -> void:
 	if not partida_activa:
 		return
 
 	jinete.inclinar_derecha()
 
-	animacion_jinete_temporal = true
-	tiempo_retorno_jinete = DURACION_INCLINACION_JINETE
 
-
-# Devuelve al jinete a su animación de reposo.
+# Devuelve al jinete a su postura normal al finalizar el QTE.
 func animar_jinete_reposo() -> void:
 	if not partida_activa:
 		return
 
-	animacion_jinete_temporal = false
-	tiempo_retorno_jinete = 0.0
-
 	jinete.reposo()
 
-
-# Controla la duración de las inclinaciones del jinete.
-func actualizar_animacion_jinete(delta: float) -> void:
-	if not animacion_jinete_temporal:
-		return
-
-	tiempo_retorno_jinete -= delta
-
-	if tiempo_retorno_jinete <= 0.0:
-		animar_jinete_reposo()
+	# Las animaciones modifican visual.rotation.
+	visual_jinete.rotation = rotacion_original_visual
 
 
-# Selecciona la animación del jinete según la dirección.
-func procesar_movimiento_jinete(accion: String) -> void:
-	match accion:
-		"qte_izq":
-			animar_jinete_izquierda()
-
-		"qte_derecha":
-			animar_jinete_derecha()
-
-		"qte_arriba":
-			animar_jinete_reposo()
-
-		"qte_abajo":
-			animar_jinete_reposo()
+# Las inclinaciones solo se inician desde _on_qte_iniciado.
+# No se calcula ninguna animación a partir del balanceo normal del toro.
+func actualizar_animacion_jinete(_delta: float) -> void:
+	pass
 
 
 # Incrementa el nivel de furia cada diez segundos.
@@ -460,7 +421,7 @@ func configurar_dificultad_furia() -> void:
 			intervalo_qte = 0.6
 
 
-# Devuelve el multiplicador de puntuación.
+# Obtiene el multiplicador de puntos.
 func obtener_multiplicador_puntos() -> int:
 	if turbo_activo:
 		return MULTIPLICADOR_PUNTOS_TURBO
@@ -518,7 +479,7 @@ func aumentar_combo() -> void:
 	)
 
 
-# Reinicia el combo después de un fallo.
+# Reinicia el combo después de fallar.
 func reiniciar_combo() -> void:
 	combo_actual = 0
 
@@ -535,7 +496,7 @@ func obtener_intervalo_qte() -> float:
 	return intervalo_qte
 
 
-# Inicia un QTE aleatorio según el nivel de furia.
+# Inicia un QTE aleatorio según la furia.
 func iniciar_qte() -> void:
 	tiempo_entre_qte = 0.0
 
@@ -561,6 +522,8 @@ func iniciar_qte() -> void:
 			gestor_qte.iniciar_simple()
 
 		1:
+			# El gestor calcula la dirección contraria
+			# a la inclinación del toro.
 			gestor_qte.iniciar_direccion(
 				movimiento_toro.rotation
 			)
@@ -580,7 +543,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not partida_activa:
 		return
 
-	# Activa el Turbo mediante Shift.
+	# Activa el Turbo.
 	if event.is_action_pressed("activar_turbo") and not event.is_echo():
 		activar_turbo()
 		return
@@ -588,7 +551,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not gestor_qte.qte_activo:
 		return
 
-	# Gestiona el QTE de mantener presionado.
+	# Impide responder antes de que aparezca la tecla.
+	if esperando_aviso_compensacion:
+		return
+
+	# QTE de mantener presionado.
 	if gestor_qte.qte_mantener:
 		if event.is_action_pressed("accion") and not event.is_echo():
 			gestor_qte.comenzar_mantener()
@@ -598,15 +565,14 @@ func _unhandled_input(event: InputEvent) -> void:
 
 		return
 
-	# Gestiona el QTE de pulsaciones repetidas.
+	# QTE de pulsaciones repetidas.
 	if gestor_qte.qte_machacar:
 		if event.is_action_pressed("accion") and not event.is_echo():
 			gestor_qte.registrar_pulsacion()
 
 		return
 
-	# Procesa las acciones direccionales.
-	# Cada acción reconoce WASD y las flechas.
+	# Reconoce las acciones direccionales.
 	var acciones: Array[String] = [
 		"qte_izq",
 		"qte_derecha",
@@ -616,8 +582,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	for accion in acciones:
 		if event.is_action_pressed(accion) and not event.is_echo():
-			procesar_movimiento_jinete(accion)
-
+			# La inclinación ya ocurrió antes del aviso.
+			# Aquí solamente se comprueba la respuesta.
 			if gestor_qte.qte_secuencia:
 				gestor_qte.comprobar_secuencia(accion)
 			else:
@@ -626,16 +592,67 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 
 
-# Muestra las instrucciones del QTE.
+# Cuando inicia un QTE de dirección:
+# 1. El jinete se inclina hacia el lado de compensación.
+# 2. Se espera a que la inclinación sea visible.
+# 3. Aparece la tecla correspondiente.
 func _on_qte_iniciado(
 	_accion: String,
 	tecla: String,
 	es_direccion: bool
 ) -> void:
-	qte_prompt.mostrar_qte(tecla, es_direccion)
+	qte_direccion_activo = es_direccion
+
+	# Los demás QTE funcionan normalmente.
+	if not es_direccion:
+		qte_prompt.mostrar_qte(tecla, false)
+		return
+
+	# Evita que el jugador responda antes del aviso.
+	esperando_aviso_compensacion = true
+
+	# Pausa el tiempo de respuesta mientras se inclina.
+	temporizador_qte.paused = true
+
+	# Oculta el aviso durante la inclinación inicial.
+	qte_prompt.ocultar_qte()
+
+	# CORRECCIÓN:
+	# Si la tecla es D, el jinete se inclina a la derecha.
+	# Si la tecla es A, el jinete se inclina a la izquierda.
+	#
+	# La dirección indicada corresponde a la compensación
+	# del equilibrio del toro.
+
+	if gestor_qte.accion_correcta == "qte_derecha":
+		animar_jinete_derecha()
+	else:
+		animar_jinete_izquierda()
+
+	# Espera a que la inclinación sea visible.
+	await get_tree().create_timer(
+		DURACION_INCLINACION_JINETE
+	).timeout
+
+	# Evita continuar si terminó la partida.
+	if not is_inside_tree() or not partida_activa:
+		return
+
+	# Evita mostrar un aviso de un QTE cancelado.
+	if not gestor_qte.qte_activo or not qte_direccion_activo:
+		return
+
+	# Ahora aparece la tecla de compensación.
+	qte_prompt.mostrar_qte(tecla, true)
+
+	# Permite responder.
+	esperando_aviso_compensacion = false
+
+	# El tiempo de respuesta comienza ahora.
+	temporizador_qte.paused = false
 
 
-# Actualiza el progreso del QTE de pulsaciones repetidas.
+# Actualiza el progreso del QTE de machacar.
 func _on_progreso_machacar(
 	pulsaciones: int,
 	necesarias: int
@@ -648,17 +665,21 @@ func _on_progreso_machacar(
 
 # Procesa un QTE acertado.
 func _on_qte_acertado() -> void:
+	# Si era una compensación, el jinete vuelve a reposo.
+	if qte_direccion_activo:
+		animar_jinete_reposo()
+
+	qte_direccion_activo = false
+	esperando_aviso_compensacion = false
+	temporizador_qte.paused = false
+
 	qte_prompt.mostrar_resultado(true)
 
 	sonido_qte_correcto.play()
 
-	# Muestra el destello verde.
 	mostrar_efecto_acierto()
-
-	# Produce el pequeño rebote del jinete.
 	aplicar_rebote_jinete()
 
-	# Recupera equilibrio y aumenta el combo.
 	modificar_equilibrio(
 		configuracion.recuperacion_qte
 	)
@@ -666,19 +687,23 @@ func _on_qte_acertado() -> void:
 	aumentar_combo()
 
 
-# Procesa un QTE PERFECTO.
+# Procesa un QTE perfecto.
 func _on_qte_perfecto() -> void:
+	# Si era una compensación, el jinete vuelve a reposo.
+	if qte_direccion_activo:
+		animar_jinete_reposo()
+
+	qte_direccion_activo = false
+	esperando_aviso_compensacion = false
+	temporizador_qte.paused = false
+
 	qte_prompt.mostrar_resultado(true, true)
 
 	sonido_qte_correcto.play()
 
-	# Muestra el destello verde.
 	mostrar_efecto_acierto()
-
-	# Produce el pequeño rebote del jinete.
 	aplicar_rebote_jinete()
 
-	# Recupera equilibrio y aumenta el combo.
 	modificar_equilibrio(
 		configuracion.recuperacion_perfecta
 	)
@@ -704,17 +729,21 @@ func _on_qte_perfecto() -> void:
 
 # Procesa un QTE fallado.
 func _on_qte_fallado() -> void:
+	# Finaliza la inclinación si era un QTE de dirección.
+	if qte_direccion_activo:
+		animar_jinete_reposo()
+
+	qte_direccion_activo = false
+	esperando_aviso_compensacion = false
+	temporizador_qte.paused = false
+
 	qte_prompt.mostrar_resultado(false)
 
 	sonido_qte_fallido.play()
 
-	# Muestra el destello rojo.
 	mostrar_efecto_fallo()
-
-	# Sacude la cámara brevemente.
 	aplicar_sacudida_camara()
 
-	# Determina la penalización de equilibrio.
 	var penalizacion: float = (
 		configuracion.penalizacion_fallo
 	)
@@ -722,12 +751,10 @@ func _on_qte_fallado() -> void:
 	if turbo_activo:
 		penalizacion = PENALIZACION_FALLO_EN_TURBO
 
-	# Reduce el equilibrio y reinicia el combo.
 	modificar_equilibrio(-penalizacion)
 
 	reiniciar_combo()
 
-	# Reduce la carga del Turbo cuando no está activo.
 	if not turbo_activo:
 		carga_turbo = clampf(
 			carga_turbo - PENALIZACION_CARGA_TURBO,
@@ -755,10 +782,8 @@ func activar_turbo() -> void:
 	tiempo_turbo_restante = DURACION_TURBO
 	ultimo_segundo_turbo = -1
 
-	# Aplica la reducción del tiempo de respuesta.
 	gestor_qte.configurar_turbo(true)
 
-	# Muestra el contador del Turbo.
 	actualizar_contador_turbo()
 
 	print("TURBO ACTIVADO")
@@ -781,7 +806,7 @@ func actualizar_contador_turbo() -> void:
 		)
 
 
-# Desactiva el Turbo y restablece los valores normales.
+# Desactiva el Turbo.
 func desactivar_turbo() -> void:
 	if not turbo_activo:
 		return
@@ -790,10 +815,8 @@ func desactivar_turbo() -> void:
 	tiempo_turbo_restante = 0.0
 	ultimo_segundo_turbo = -1
 
-	# Vacía la barra de Turbo.
 	carga_turbo = 0.0
 
-	# Restaura los tiempos normales de respuesta.
 	gestor_qte.configurar_turbo(false)
 
 	turbo_cambiado.emit(carga_turbo)
@@ -803,7 +826,7 @@ func desactivar_turbo() -> void:
 	print("TURBO FINALIZADO")
 
 
-# Modifica el equilibrio y comprueba si termina la partida.
+# Modifica el equilibrio.
 func modificar_equilibrio(cantidad: float) -> void:
 	equilibrio_actual = clampf(
 		equilibrio_actual + cantidad,
@@ -819,29 +842,34 @@ func modificar_equilibrio(cantidad: float) -> void:
 		terminar_partida()
 
 
-# Finaliza la partida y reproduce la caída del jinete.
+# Finaliza la partida y reproduce la caída.
 func terminar_partida() -> void:
 	if not partida_activa:
 		return
 
 	partida_activa = false
 
-	# Detiene los QTE y oculta sus indicaciones.
 	gestor_qte.detener()
 	qte_prompt.ocultar_qte()
 
-	# Detiene las animaciones temporales del jinete.
+	# Cancela cualquier compensación pendiente.
+	qte_direccion_activo = false
+	esperando_aviso_compensacion = false
+	temporizador_qte.paused = false
+
 	animacion_jinete_temporal = false
 	tiempo_retorno_jinete = 0.0
 
-	# Detiene el rebote para no interferir con la caída.
+	# Detiene el rebote.
 	if tween_rebote != null:
 		if tween_rebote.is_running():
 			tween_rebote.kill()
 
 	jinete.position = posicion_original_jinete
+	jinete.rotation = rotacion_original_jinete
+	visual_jinete.rotation = rotacion_original_visual
 
-	# Detiene la sacudida y restablece la cámara.
+	# Restablece la cámara.
 	if camara != null:
 		if tween_camara != null:
 			if tween_camara.is_running():
@@ -849,12 +877,12 @@ func terminar_partida() -> void:
 
 		camara.offset = posicion_original_camara
 
-	# Guarda la puntuación y actualiza el récord.
+	# Guarda el récord.
 	GameState.guardar_record(
 		puntuacion_actual
 	)
 
-	# Guarda el tiempo sobrevivido.
+	# Guarda el tiempo final.
 	GameState.guardar_tiempo_final(
 		int(tiempo_partida)
 	)
@@ -873,13 +901,11 @@ func terminar_partida() -> void:
 
 	hud.actualizar_equilibrio(0.0)
 
-	# Reproduce la animación de caída.
+	# Ejecuta la caída.
 	jinete.caer()
 
-	# Espera a que termine la caída.
 	await jinete.caida_terminada
 
-	# Cambia a la pantalla Game Over.
 	get_tree().change_scene_to_file(
 		"res://Scenes/ui/fin_juego.tscn"
 	)

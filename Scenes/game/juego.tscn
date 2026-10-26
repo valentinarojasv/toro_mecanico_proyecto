@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://c4qmfiqdnsisx" path="res://Assets/final/fondo.png" id="1_hm6jn"]
 [ext_resource type="Script" uid="uid://d2xvge62b8ua2" path="res://Scripts/juego.gd" id="1_p2ibf"]
-[ext_resource type="Script" uid="uid://dyhkwa3akjq21" path="res://Resources/configuracion_equilibrio.gd" id="2_2qyif"]
+[ext_resource type="Resource" uid="uid://58d5jlntdrrt" path="res://Resources/configuracion_equilibrio.tres" id="2_5po78"]
 [ext_resource type="PackedScene" uid="uid://bgk6s1dswtnwr" path="res://Scenes/entidades/toro.tscn" id="2_wbnfm"]
 [ext_resource type="PackedScene" uid="uid://gq2jbugprda5" path="res://Scenes/ui/hub.tscn" id="3_wbnfm"]
 [ext_resource type="Texture2D" uid="uid://cvcaedd5tante" path="res://Assets/final/Base.png" id="4_cq3xe"]
@@ -33,10 +33,6 @@
 [ext_resource type="AudioStream" uid="uid://dnn5t03ijmvby" path="res://Audio/UI.ogg" id="28_5po78"]
 [ext_resource type="AudioStream" uid="uid://c7g88oy06rlm2" path="res://Audio/Perfect.ogg" id="29_p13vo"]
 
-[sub_resource type="Resource" id="Resource_cq3xe"]
-script = ExtResource("2_2qyif")
-metadata/_custom_type_script = "uid://dyhkwa3akjq21"
-
 [sub_resource type="Resource" id="Resource_ixi3t"]
 script = ExtResource("5_xfidg")
 metadata/_custom_type_script = "uid://bosycal0tsw2n"
@@ -56,7 +52,7 @@ bg_color = Color(0.9529412, 0.105882354, 0.10980392, 1)
 
 [node name="Juego" type="Node2D" unique_id=1504673152]
 script = ExtResource("1_p2ibf")
-configuracion = SubResource("Resource_cq3xe")
+configuracion = ExtResource("2_5po78")
 metadata/_edit_horizontal_guides_ = [0.0]
 
 [node name="fondo" type="Sprite2D" parent="." unique_id=2079894343]
@@ -198,9 +194,9 @@ text = "FURIA: NIVEL 1"
 
 [node name="TextoQTE" parent="HUB/QTEPrompt" index="0" unique_id=872682784]
 offset_left = 532.0
-offset_top = 547.0
+offset_top = 551.0
 offset_right = 746.0
-offset_bottom = 586.0
+offset_bottom = 590.0
 
 [node name="AnilloTiempo" parent="HUB/QTEPrompt" index="1" unique_id=1186575703]
 offset_left = 952.99994

@@ -20,6 +20,56 @@ func _ready() -> void:
 	anillo_tiempo.value = 100.0
 
 
+# Convierte las letras del teclado en nombres de direcciones.
+# Solo modifica el texto mostrado, no las acciones del jugador.
+func convertir_direccion(tecla: String) -> String:
+	match tecla.to_upper():
+		"W":
+			return "ARRIBA"
+		"A":
+			return "IZQUIERDA"
+		"S":
+			return "ABAJO"
+		"D":
+			return "DERECHA"
+		_:
+			return tecla
+
+
+# Convierte las letras de los QTE de secuencia.
+func convertir_secuencia(secuencia: String) -> String:
+	var texto_convertido: String = secuencia
+
+	# Reemplaza las letras individuales de la secuencia.
+	# Se utiliza una expresión regular para evitar modificar
+	# letras que formen parte de otras palabras.
+	var expresion: RegEx = RegEx.new()
+	expresion.compile("\\b[WASD]\\b")
+
+	var coincidencias: Array[RegExMatch] = expresion.search_all(
+		texto_convertido
+	)
+
+	# Recorre las coincidencias en orden inverso para conservar
+	# las posiciones originales durante los reemplazos.
+	for i in range(coincidencias.size() - 1, -1, -1):
+		var coincidencia: RegExMatch = coincidencias[i]
+
+		var letra: String = coincidencia.get_string()
+		var direccion: String = convertir_direccion(letra)
+
+		var inicio: int = coincidencia.get_start()
+		var final: int = coincidencia.get_end()
+
+		texto_convertido = (
+			texto_convertido.substr(0, inicio)
+			+ direccion
+			+ texto_convertido.substr(final)
+		)
+
+	return texto_convertido
+
+
 # Muestra las instrucciones del QTE.
 func mostrar_qte(tecla: String, es_direccion: bool) -> void:
 	numero_resultado += 1
@@ -32,16 +82,26 @@ func mostrar_qte(tecla: String, es_direccion: bool) -> void:
 	)
 
 	if es_direccion:
-		texto_qte.text = "COMPENSA CON " + tecla
+		texto_qte.text = (
+			"COMPENSA CON "
+			+ convertir_direccion(tecla)
+		)
+
 	elif tecla.begins_with("SECUENCIA:"):
-		texto_qte.text = tecla
+		texto_qte.text = convertir_secuencia(tecla)
+
 	elif tecla == "ESPACIO":
 		texto_qte.text = "MANTÉN ESPACIO"
+
 	elif tecla == "REPETIR ESPACIO":
 		texto_qte.text = "PULSA ESPACIO\nREPETIDAMENTE"
 		mostrando_progreso = true
+
 	else:
-		texto_qte.text = "PRESIONA " + tecla
+		texto_qte.text = (
+			"PRESIONA "
+			+ convertir_direccion(tecla)
+		)
 
 	anillo_tiempo.show()
 
@@ -93,12 +153,14 @@ func mostrar_resultado(
 			"font_color",
 			COLOR_PERFECTO
 		)
+
 	elif correcto:
 		texto_qte.text = "¡CORRECTO!"
 		texto_qte.add_theme_color_override(
 			"font_color",
 			COLOR_CORRECTO
 		)
+
 	else:
 		texto_qte.text = "¡FALLASTE!"
 		texto_qte.add_theme_color_override(
