@@ -20,18 +20,18 @@ func _ready() -> void:
 	anillo_tiempo.value = 100.0
 
 
-# Convierte las letras del teclado en nombres de direcciones.
+# Convierte las letras del teclado en flechas.
 # Solo modifica el texto mostrado, no las acciones del jugador.
 func convertir_direccion(tecla: String) -> String:
 	match tecla.to_upper():
 		"W":
-			return "ARRIBA"
+			return "↑"
 		"A":
-			return "IZQUIERDA"
+			return "←"
 		"S":
-			return "ABAJO"
+			return "↓"
 		"D":
-			return "DERECHA"
+			return "→"
 		_:
 			return tecla
 
@@ -83,7 +83,7 @@ func mostrar_qte(tecla: String, es_direccion: bool) -> void:
 
 	if es_direccion:
 		texto_qte.text = (
-			"COMPENSA CON "
+			"COMPENSA "
 			+ convertir_direccion(tecla)
 		)
 

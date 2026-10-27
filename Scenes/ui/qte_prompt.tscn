@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ba7ig10ipwuab" path="res://Scripts/QTEprompt.gd" id="1_cq1uj"]
 [ext_resource type="Texture2D" uid="uid://dsqtklkwqo7ha" path="res://Assets/final/circulo.png" id="2_cq1uj"]
-[ext_resource type="FontFile" uid="uid://gbm3ofo7ajux" path="res://Assets/final/PatuaOne-Regular.ttf" id="2_ka8h7"]
+[ext_resource type="FontFile" uid="uid://di8frkyh6yio4" path="res://Assets/final/dejavu-fonts-ttf-2.37/ttf/DejaVuSans-Bold.ttf" id="2_ka8h7"]
 
 [node name="QTEPrompt" type="Control" unique_id=2131061750]
 layout_mode = 3
